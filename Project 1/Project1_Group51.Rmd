@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 df <- read.table("treemoist.dat", sep="")
 names(df)[1] <- 'species'
 names(df)[2] <- 'branch/species'
-names(df)[3] <- 'location/branch'
+names(df)[3] <- 'location'
 names(df)[4] <- 'transpiration'
 names(df)[5] <- 'moisture_content'
 ```
@@ -20,14 +20,42 @@ names(df)[5] <- 'moisture_content'
 ## I. Introduction
 This dataset is originally collected and used for J. Joseph McDermott's botanical research on the effect of cutting methods have on the moisture content of tree branch samples in 1941. In experiments, researchers use twig segments to confirm the moisture content of woody structure. If the sample is simultaneously cut at both ends, then the release of tension in both direction will not result in instantaneous water removal; whereas cutting at one single end will lead to rapid water loss in the vicinity of cut. 
 
-Grounded on this fact, we conduct a statistical analysis on validating how different cutting methods will affect the extent of water removal given different cut samples. We intend to find an estimation model of how each factor given in the dataset and their interaction terms with cutting methods are related to the mass of moisture content (expressed in $10 \times \%$ of its dry sample weight). We will carry out an exploratory data analysis in section II to examine and preprocess the data. Then we will process our data modeling and assessment results in section III, IV, and V. Finally we will conclude our analysis and which part in the original analysis should be criticized. 
+Grounded on this fact, we conduct a statistical analysis on validating how different cutting methods will affect the extent of water removal given different cut samples. We intend to find an estimation model of how each factor given in the dataset and their interaction terms with cutting methods are related to the mass of moisture content. We will carry out an exploratory data analysis in section II to examine and preprocess the data. Then we will process our data modeling and assessment results in section III, IV, and V. Finally we will conclude our analysis and which part in the original analysis should be criticized. 
 
 ## II. EDA
 ### 2.1 Data Validation
-To begin with, we check the integrity and consistency of dataset. The dataset includes $120$ branch samples, includes 4 variables: tree species, branch count, cutting location, and transpiration type. Under each species, for each possible combination of cutting location and transpiration type, we have $5$ sample measurements of moisture contents, which also reveals that the dataset is balanced. In later analysis, we will exclude the branch count column because it 
+The dataset includes $120$ branch samples, includes 4 variable columns: **species, branch/species, location/branch**, and **transpiration type**. The moisture content in the last column is expressed in $10 \times \%$ of its dry sample weight. Under each species, for each possible combination of cutting location and transpiration type, we have $5$ sample measurements of moisture contents, which also reveals that the dataset is balanced. We will later exclude the **branch/species** column because it works as an indicator of the former combination. A variance summary table is provided below. We will keep the numerical values of the classes for further analysis. 
+
+| **Var Name** | **Type** | **Category** | **Classes** | **Detail** |
+|:-:|:-:|:-:|:-:|:--|
+| Species | num | categorical | 4 | 1=
+| Location/Branch | num | categorical | 3 | 
+| Transpiration | num | categorical | 2 |
+| Moisture Content | num(target) | continuous | N/A |
+
 ```{r, echo=FALSE, include=FALSE}
 dim(df)
 sum(is.na(df))
+```
+### 2.2 Univariate Analysis
+
+```{r, fig.width=8, fig.height=1.5, echo=FALSE}
+library(data.table)
+library(ggplot2)
+library(gridExtra)
+
+plt1 <- ggplot(df, aes(x=factor(species))) + geom_bar(stat="count") + xlab("Species") +ylab("Frequency")
+plt2 <- ggplot(df, aes(x=factor(location))) + geom_bar(stat="count") + xlab("Location/Branch") +ylab("")
+plt3 <- ggplot(df, aes(x=factor(transpiration))) + geom_bar(stat="count") + xlab("Transpiration") +ylab("")
+plt4 <- ggplot(df, aes(x=moisture_content)) + geom_histogram(bins=30) +xlab("Moisture Content")+ylab("")
+grid.arrange(plt1, plt2, plt3, plt4, ncol=4, top="Frequency Count of Variates")
+```
+
+
+### 2.3 Bivariate Analysis
+A two way table for the dataset:
+```{r, echo=FALSE}
+
 ```
 
 You can also embed plots, for example:
