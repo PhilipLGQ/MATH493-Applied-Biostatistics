@@ -38,7 +38,6 @@ dim(df)
 sum(is.na(df))
 ```
 ### 2.2 Univariate Analysis
-From the figures below, we can see that for each factor variate, the frequency count 
 ```{r, fig.width=8, fig.height=1.8, echo=FALSE}
 library(data.table)
 library(ggplot2)
@@ -48,12 +47,27 @@ plt1 <- ggplot(df, aes(x=factor(species))) + geom_bar(stat="count", width = 0.5)
 plt2 <- ggplot(df, aes(x=factor(location))) + geom_bar(stat="count", width = 0.5) + xlab("Location/Branch") +ylab("")
 plt3 <- ggplot(df, aes(x=factor(transpiration))) + geom_bar(stat="count", width = 0.5) + xlab("Transpiration") +ylab("")
 plt4 <- ggplot(df, aes(x=moisture_content)) + geom_histogram(bins=40, boundary=1) +xlab("Moisture Content")+ylab("")
-grid.arrange(plt1, plt2, plt3, plt4, ncol=4, top="Frequency Count of Variates")
+grid.arrange(plt1, plt2, plt3, plt4, ncol=4, top="Fig. 1: Frequency Count of Variates")
 ```
-```{r, include=FALSE}
-summary(df$moisture_content)
+From the histograms above, we can see that for "Species", "Location/Branch" and "Transpiration", the variety in each variate is equally distributed. For the response variate, we expand its value distribution analysis as follows:
 
+```{r, fig.width=5, fig.height=2.2, fig.align='center', echo=FALSE}
+library(knitr)
+library(ggplot2)
+library(gridExtra)
+library(grid)
+
+m_summary <- as.data.frame(apply(df, 2, summary))[5]
+m_summary[7,] <- c(m_summary[2,]-m_summary[5,])
+rownames(m_summary)[7] <- c("IQR")
+m_summary[8,] <- c(sd(df$moisture_content))
+rownames(m_summary)[8] <- c("SD")
+colnames(m_summary) <- c("Moisture Content")
+plt5 <- ggplot(df, aes(x="", y=moisture_content)) + geom_boxplot(width=0.5, outlier.colour="red", outlier.shape=12) + xlab("") + ylab("Value")
+tbl1 <- tableGrob(m_summary, theme = ttheme_default(base_size = 6.5))
+grid.arrange(tbl1, plt5, ncol=2, top=textGrob("Fig. 2: Basic Statistics of Response Variate", gp=gpar(fontsize=10, font=8)))
 ```
+
 
 
 ### 2.3 Bivariate Analysis
