@@ -24,31 +24,35 @@ Grounded on this fact, we conduct a statistical analysis on validating how diffe
 
 ## II. EDA
 ### 2.1 Data Validation
-The dataset includes $120$ branch samples, includes 4 variable columns: **species, branch/species, location/branch**, and **transpiration type**. The moisture content in the last column is expressed in $10 \times \%$ of its dry sample weight. Under each species, for each possible combination of cutting location and transpiration type, we have $5$ sample measurements of moisture contents, which also reveals that the dataset is balanced. We will later exclude the **branch/species** column because it works as an indicator of the former combination. A variance summary table is provided below. We will keep the numerical values of the classes for further analysis. 
+The dataset includes $120$ branch samples, includes 4 variable columns: **species, branch/species, location/branch**, and **transpiration **. The moisture content in the last column is expressed in $10 \times \%$ of its dry sample weight. Under each species, for each possible combination of cutting location (Location/Branch) and transpiration type(Transpiration), we have $5$ sample measurements of moisture contents, which also reveals that the dataset is balanced. We will later exclude the **branch/species** column because it works as an indicator of the former combination. A variance summary table is provided below. In "Location/Branch", "central" refers to simultaneous cut at both ends, "distal" and "proximal" refer to single cuts at branch-terminal end and tree-side respectively. We will keep the numerical values of the classes for analysis consistency. 
 
 | **Var Name** | **Type** | **Category** | **Classes** | **Detail** |
 |:-:|:-:|:-:|:-:|:--|
-| Species | num | categorical | 4 | 1=
-| Location/Branch | num | categorical | 3 | 
-| Transpiration | num | categorical | 2 |
-| Moisture Content | num(target) | continuous | N/A |
+| **Species** | num | categorical | 4 | 1=Loblolly Pine 2=Shortleaf Pine \ 3=Yellow Poplar 4=Red Gum
+| **Location/Branch** | num | categorical | 3 | 1=Central 2=Distal 3=Proximal
+| **Transpiration** | num | categorical | 2 | 1=Rapid 2=Slow
+| **MoistureContent** | num | continuous | N/A | **Target Response** |
 
 ```{r, echo=FALSE, include=FALSE}
 dim(df)
 sum(is.na(df))
 ```
 ### 2.2 Univariate Analysis
-
-```{r, fig.width=8, fig.height=1.5, echo=FALSE}
+From the figures below, we can see that for each factor variate, the frequency count 
+```{r, fig.width=8, fig.height=1.8, echo=FALSE}
 library(data.table)
 library(ggplot2)
 library(gridExtra)
 
-plt1 <- ggplot(df, aes(x=factor(species))) + geom_bar(stat="count") + xlab("Species") +ylab("Frequency")
-plt2 <- ggplot(df, aes(x=factor(location))) + geom_bar(stat="count") + xlab("Location/Branch") +ylab("")
-plt3 <- ggplot(df, aes(x=factor(transpiration))) + geom_bar(stat="count") + xlab("Transpiration") +ylab("")
-plt4 <- ggplot(df, aes(x=moisture_content)) + geom_histogram(bins=30) +xlab("Moisture Content")+ylab("")
+plt1 <- ggplot(df, aes(x=factor(species))) + geom_bar(stat="count", width = 0.5) + xlab("Species") +ylab("Frequency")
+plt2 <- ggplot(df, aes(x=factor(location))) + geom_bar(stat="count", width = 0.5) + xlab("Location/Branch") +ylab("")
+plt3 <- ggplot(df, aes(x=factor(transpiration))) + geom_bar(stat="count", width = 0.5) + xlab("Transpiration") +ylab("")
+plt4 <- ggplot(df, aes(x=moisture_content)) + geom_histogram(bins=40, boundary=1) +xlab("Moisture Content")+ylab("")
 grid.arrange(plt1, plt2, plt3, plt4, ncol=4, top="Frequency Count of Variates")
+```
+```{r, include=FALSE}
+summary(df$moisture_content)
+
 ```
 
 
