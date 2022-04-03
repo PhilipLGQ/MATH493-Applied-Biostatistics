@@ -53,7 +53,7 @@ plt3 <- ggplot(df, aes(x=factor(transpiration))) + geom_bar(stat="count", width 
 plt4 <- ggplot(df, aes(x=moisture_content)) + geom_histogram(bins=40, boundary=1) +xlab("Moisture Content")+ylab("")
 grid.arrange(plt1, plt2, plt3, plt4, ncol=4, top="Fig. 1: Frequency Count of Variates")
 ```
-From the histograms above, we can see that for "Species", "Location/Branch" and "Transpiration", the variety in each variate is equally distributed. For the continuous response variable, we expand its value distribution analysis (Fig. 2). The distribution of moisture content is slightly left-skewed, with more suspected extreme outliers at higher percentiles. 50% of samples fall into the interval $[1025, 1247]$. From the Q-Q plot, we can corroborate that the distribution is more left skewed. The result of Kolmogorov-Smirnov test also rejects the null hypothesis of its normality.
+From the histograms above, we can see that for "Species", "Location/Branch" and "Transpiration", the variety in each variate is equally distributed. For the continuous response variable, we expand its value distribution analysis (Fig. 2). The distribution of moisture content is slightly left-skewed, with more suspected extreme outliers at higher percentiles. 50% of samples fall into the interval $[102.5, 124.7]$. From the Q-Q plot, we can corroborate that the distribution is more left skewed. The result of Kolmogorov-Smirnov test also rejects the null hypothesis of its normality.
 ```{r, include=FALSE}
 ks.test(df$moisture_content, "pnorm", mean=mean(df$moisture_content), sd=sd(df$moisture_content))
 ```
