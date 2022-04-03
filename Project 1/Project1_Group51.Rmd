@@ -2,6 +2,7 @@
 title: "Project 1: Moisture Content of Tree Branches"
 author: "Yingxue YU, Guanqun LIU, Yulun Jiang"
 date: '2022-03-31'
+geometry: margin=2.54cm
 output: pdf_document
 ---
 ```{r setup, include=FALSE}
@@ -9,12 +10,15 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, include=FALSE}
+library(data.table)
 df <- read.table("treemoist.dat", sep="")
 names(df)[1] <- 'species'
 names(df)[2] <- 'branch/species'
 names(df)[3] <- 'location'
 names(df)[4] <- 'transpiration'
 names(df)[5] <- 'moisture_content'
+df <- as.data.frame(df)
+df['moisture_content'] <- df['moisture_content'] / 10
 ```
 
 ## I. Introduction
@@ -24,7 +28,7 @@ Grounded on this fact, we conduct a statistical analysis on validating how diffe
 
 ## II. EDA
 ### 2.1 Data Validation
-The dataset includes $120$ branch samples, includes 4 variable columns: **species, branch/species, location/branch**, and **transpiration **. The moisture content in the last column is expressed in $10 \times \%$ of its dry sample weight. Under each species, for each possible combination of cutting location (Location/Branch) and transpiration type(Transpiration), we have $5$ sample measurements of moisture contents, which also reveals that the dataset is balanced. We will later exclude the **branch/species** column because it works as an indicator of the former combination. A variance summary table is provided below. In "Location/Branch", "central" refers to simultaneous cut at both ends, "distal" and "proximal" refer to single cuts at branch-terminal end and tree-side respectively. We will keep the numerical values of the classes for analysis consistency. 
+The dataset includes $120$ branch samples, includes 4 variable columns: **species, branch/species, location/branch**, and **transpiration **. The moisture content in the last column is expressed in $10 \times \%$ of its dry sample weight. Under each species, for each possible combination of cutting location (Location/Branch) and transpiration type(Transpiration), we have $5$ sample measurements of moisture contents, which also reveals that the dataset is balanced. We will later exclude the **branch/species** column because it works as an indicator of the former combination. A variance summary table is provided below. In "Location/Branch", "central" refers to simultaneous cut at both ends, "distal" and "proximal" refer to single cuts at branch-terminal end and tree-side respectively. We will keep the numerical values of the classes for analysis consistency and transform the response scale to $1 \times \%$ of dry sample weight. 
 
 | **Var Name** | **Type** | **Category** | **Classes** | **Detail** |
 |:-:|:-:|:-:|:-:|:--|
@@ -49,40 +53,138 @@ plt3 <- ggplot(df, aes(x=factor(transpiration))) + geom_bar(stat="count", width 
 plt4 <- ggplot(df, aes(x=moisture_content)) + geom_histogram(bins=40, boundary=1) +xlab("Moisture Content")+ylab("")
 grid.arrange(plt1, plt2, plt3, plt4, ncol=4, top="Fig. 1: Frequency Count of Variates")
 ```
-From the histograms above, we can see that for "Species", "Location/Branch" and "Transpiration", the variety in each variate is equally distributed. For the response variate, we expand its value distribution analysis as follows:
+From the histograms above, we can see that for "Species", "Location/Branch" and "Transpiration", the variety in each variate is equally distributed. For the continuous response variable, we expand its value distribution analysis (Fig. 2). The distribution of moisture content is slightly left-skewed, with more suspected extreme outliers at higher percentiles. 50% of samples fall into the interval $[1025, 1247]$. From the Q-Q plot, we can corroborate that the distribution is more left skewed. The result of Kolmogorov-Smirnov test also rejects the null hypothesis of its normality.
+```{r, include=FALSE}
+ks.test(df$moisture_content, "pnorm", mean=mean(df$moisture_content), sd=sd(df$moisture_content))
+```
 
-```{r, fig.width=5, fig.height=2.2, fig.align='center', echo=FALSE}
+
+```{r, fig.width=8, fig.height=2.2, fig.align='center', echo=FALSE}
 library(knitr)
 library(ggplot2)
 library(gridExtra)
 library(grid)
 
 m_summary <- as.data.frame(apply(df, 2, summary))[5]
-m_summary[7,] <- c(m_summary[2,]-m_summary[5,])
+m_summary[4,] <- round(m_summary[4,], digits = 4)
+m_summary[7,] <- c(m_summary[5,]-m_summary[2,])
 rownames(m_summary)[7] <- c("IQR")
-m_summary[8,] <- c(sd(df$moisture_content))
+m_summary[8,] <- c(round(sd(df$moisture_content), digits = 4))
 rownames(m_summary)[8] <- c("SD")
 colnames(m_summary) <- c("Moisture Content")
 plt5 <- ggplot(df, aes(x="", y=moisture_content)) + geom_boxplot(width=0.5, outlier.colour="red", outlier.shape=12) + xlab("") + ylab("Value")
-tbl1 <- tableGrob(m_summary, theme = ttheme_default(base_size = 6.5))
-grid.arrange(tbl1, plt5, ncol=2, top=textGrob("Fig. 2: Basic Statistics of Response Variate", gp=gpar(fontsize=10, font=8)))
+plt9 <- ggplot(df, aes(sample=moisture_content)) + stat_qq() + stat_qq_line() + ylab("value") + xlab("")
+tbl1 <- tableGrob(m_summary, theme = ttheme_default(base_size = 6))
+
+grid.arrange(tbl1, plt5, plt9, ncol=3, top=textGrob("Fig. 2: Basic Statistics of Response Variate", gp=gpar(fontsize=12, font=8)))
+
 ```
 
+### 2.3 Bivariate/Multivariate Analysis
+Between categorical variables, we use two way tables (Table 1) to capture the frequency under each combined category. Frequencies of all categories under each pair of categorical variables are equal. Based on these tables, we conduct $\chi^{2}$ tests and the result (Table 2) shows that all any two categorical variables are independent to each other. As for the categorical variables with the continuous target response (moisture content), we draw side-by-side boxplots of each pair and conduct the ANOVA analysis. ANOVA confirms the significance of category mean difference of **species**(tree species), **location/branch** (cutting method), **transpiration**(transpiration), and the interaction term of species and transpiration at 0.001 level. This shows an apparent difference from the original paper that **location/branch** and **species** are at 0.001 level; **transpiration**, the interaction term of cutting method and species, and the interaction term of all three variables are at 0.01 level; and the interaction term of transpiration and species is at 0.05 level.
 
+```{r, fig.width=12, fig.height=1, fig.align='center', include=FALSE, echo=FALSE}
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(gridExtra)
 
-### 2.3 Bivariate Analysis
-A two way table for the dataset:
+df_new = df[c(1, 3:5)]
+tbl2 <- df_new[c(1:3)] %>%
+  group_by(species, location) %>%
+  count() %>%
+  pivot_wider(names_from = location, values_from = n)
+colnames(tbl2)[1] <- c("S/L")
+tbl2['Total'] <- c(30, 30, 30, 30)
+tbl2 <- as.data.frame(tbl2)
+tbl2[5,] <- c("Total", 40, 40, 40, 120)
+#rownames(tbl2)[5] <- c("Total")
+
+tbl3 <- df_new[c(1:3)] %>%
+  group_by(species, transpiration) %>%
+  count() %>%
+  pivot_wider(names_from = transpiration, values_from = n)
+colnames(tbl3)[1] <- c("S/T")
+tbl3['Total'] <- c(30, 30, 30, 30)
+tbl3 <- as.data.frame(tbl3)
+tbl3[5,] <- c("Total", 60, 60, 120)
+#rownames(tbl3)[5] <- c("Total")
+
+tbl4 <- df_new[c(1:3)] %>%
+  group_by(location, transpiration) %>%
+  count() %>%
+  pivot_wider(names_from = transpiration, values_from = n)
+colnames(tbl4)[1] <- c("L/T")
+tbl4['Total'] <- c(40, 40, 40)
+tbl4 <- as.data.frame(tbl4)
+tbl4[4,] <- c("Total", 60, 60, 120)
+#rownames(tbl4)[4] <- c("Total")
+```
+```{r, fig.width=5, fig.height=1.5, fig.align='center', echo=FALSE}
+#tbl2 <- tableGrob(tbl2, theme = ttheme_default(base_size = 5))
+#tbl3 <- tableGrob(tbl3, theme = ttheme_default(base_size = 5))
+#tbl4 <- tableGrob(tbl4, theme = ttheme_default(base_size = 5))
+
+#grid.arrange(tbl2, tbl3, tbl4, ncol=3, top=textGrob("Tab. 1: Two-way Frequency Table of Categorical Variations", gp=gpar(fontsize=10, font=8)))
+library(knitr)
+kable(list(tbl2, tbl3, tbl4), caption = "Two-way Frequency Table of Categorical Variations", label=1)
+```
+
+```{r, include=FALSE, echo=FALSE}
+chisq.test(df_new$species, df_new$location)
+chisq.test(df_new$species, df_new$transpiration)
+chisq.test(df_new$location, df_new$transpiration)
+```
+
 ```{r, echo=FALSE}
+library(data.table)
+library(knitr)
 
+chi_df <- data.frame("X2 test" = c("Species/Location", "Species/Transpiration", "Location/Transpiration"),
+                     "X-squared" = c(0, 0, 0),
+                     "df" = c(6, 3, 2),
+                     "p-value" = c(1, 1, 1))
+
+kable(chi_df, caption="Chi-square Test Result", label = 2)
+```
+```{r, fig.width=8, fig.height=2, fig.align='center', echo=FALSE}
+library(ggplot2)
+library(gridExtra)
+plt6 <- ggplot(df, aes(x=factor(species), y=moisture_content)) + geom_boxplot(width=0.5, outlier.colour="red", outlier.shape=10) + xlab("Species") +ylab("Moisture Content")
+plt7 <- ggplot(df, aes(x=factor(location), y=moisture_content)) + geom_boxplot(width=0.5, outlier.colour="red", outlier.shape=10) + xlab("Location/Branch") +ylab("")
+plt8 <- ggplot(df, aes(x=factor(transpiration), y=moisture_content)) + geom_boxplot(width=0.5, outlier.colour="red", outlier.shape=10) + xlab("Transpiration") +ylab("")
+grid.arrange(plt6, plt7, plt8, ncol=3, top="Fig. 3: Boxplots")
+```
+```{r, include=FALSE, echo=FALSE}
+model.1 <- aov(moisture_content ~ factor(species), data = df_new)
+model.2 <- aov(moisture_content ~ factor(location), data = df_new)
+model.3 <- aov(moisture_content ~ factor(transpiration), data=df_new)
+model.4 <- aov(moisture_content ~ factor(species) * factor(location), data = df_new)
+model.5 <- aov(moisture_content ~ factor(species) * factor(transpiration), data = df_new)
+model.6 <- aov(moisture_content ~ factor(location) * factor(transpiration), data = df_new)
+model.7 <- aov(moisture_content ~ factor(species) * factor(location) * factor(transpiration), data = df_new)
+summary(model.1)
+summary(model.2)
+summary(model.3)
+summary(model.4)
+summary(model.5)
+summary(model.6)
+summary(model.7)
 ```
 
-You can also embed plots, for example:
+```{r, echo=FALSE}
+library(data.table)
+library(knitr)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+anova_df <- data.frame("ANOVA" = c("Species", "Loation", "Transpiration", "S:L", "S:T", "L:T", "S:L:T"),
+                     "df" = c(3, 2, 1, 6, 3, 2, 6),
+                     "meanSq" = c(4775, 1272, 3942, 79, 1020, 352, 272),
+                     "Fvalue" = c(31.729, 8.458, 26.194, 0.523, 6.776, 2.338, 1.811),
+                     "signif level" = c(0.001, 0.001, 0.001, 1, 0.001, 1, 1))
+
+kable(anova_df, caption="One-way/Two-way ANOVA Test Result (Comma - Interaction Term)", label = 3)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
 ## III. Model Fitting
 
