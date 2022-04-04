@@ -1,0 +1,69 @@
+---
+title: "hmw1-part2"
+output: pdf_document
+fontsize: 12pt
+geometry: margin=2.5cm
+---
+
+## Setup (To be removed)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(include = FALSE)
+```
+
+```{r data import}
+treemoist<-read.delim("treemoist.dat",header=FALSE,col.names = list("species","branch","location","transpiration","moisture"),sep="",colClasses=list("factor","factor","factor","factor","integer"))
+treemoist
+```
+
+
+```{r EDA}
+plot.design(treemoist)
+```
+
+## Model Fitting
+
+To test the effect of species, transpiration type and the method of cutting, which is indicated by location variable, on the moisture contents, an analysis of variance is made.
+
+Since branch is with respect to species, it doesn't make sense to use branch alone as a factor. It is used always with species in the model.
+
+The ANOVA table is shown in Table ..(needs formatting)
+
+```{r,echo=TRUE,out.width='70%'}
+tm.aov <- aov(moisture ~ species:branch+species:branch:transpiration+species:branch:location+species*location*transpiration, data=treemoist)
+Anova<-summary(tm.aov)
+Anova
+```
+The observed F values for the species-location interaction and species-branch-location interaction are not significant, while that for species, location, transpiration, species-branch interaction, species-transpiration interaction, transpiration-location interaction, species-branch-transpiration interaction, and species-transpiration-location interaction are significant. The species-branch-location interaction term is left out for the final model.
+$$ moisture = \beta_0 + \beta_1·ShortleafPine+ \beta_2·YellowPoplar+ \beta_3·RedGum+ \beta_4·Distal+ \beta_5·Proximal+ \beta_6·Slow +\beta_7·LoblollyPine·Branch2+\beta_8·ShortleafPine·Branch2+\beta_9·YellowPoplar·Branch2+\beta_10·RedGum·Branch2+\beta_11·LoblollyPine·Branch3+\beta_12·ShortleafPine·Branch3+\beta_13·YellowPoplar·Branch3+\beta_14·RedGum·Branch3+\beta_15·LoblollyPine·Branch4+\beta_16·ShortleafPine·Branch4+\beta_17·YellowPoplar·Branch4+\beta_18·RedGum·Branch4+\beta_19·LoblollyPine·Branch5+\beta_20·ShortleafPine·Branch5+\beta_21·YellowPoplar·Branch5+\beta_22·RedGum·Branch5+\beta_23·ShortleafPine·Distal+\beta_24·YellowPoplar·Distal+\beta_25·RedGum·Distal+\beta_26·ShortleafPine·Proximal+\beta_27·YellowPoplar·Proximal+\beta_28·RedGum·Proximal+\beta_29·ShortleafPine·Slow+\beta_30·YellowPoplar·Slow+\beta_31·RedGum·Slow+\beta_32·Distal·Slow+\beta_33·Proximal·Slow+\beta_34·LoblollyPine·Branch2·Slow+\beta_35·ShortleafPine·Branch2·Slow+\beta_36·YellowPoplar·Branch2·Slow+\beta_37·RedGum·Branch2·Slow+\beta_38·LoblollyPine·Branch3·Slow+\beta_39·ShortleafPine·Branch3·Slow+\beta_40·YellowPoplar·Branch3·Slow+\beta_41·RedGum·Branch3·Slow+\beta_42·LoblollyPine·Branch4·Slow+\beta_43·ShortleafPine·Branch4·Slow+\beta_44·YellowPoplar·Branch4·Slow+\beta_45·RedGum·Branch4·Slow+\beta_46·LoblollyPine·Branch5·Slow+\beta_47·ShortleafPine·Branch5·Slow+\beta48·YellowPoplar·Branch5·Slow+\beta_49·RedGum·Branch5·Slow+\beta_50·ShortleafPine·Distal·Slow+\beta_51·YellowPoplar·Distal·Slow+\beta_52·RedGum·Distal·Slow+\beta_53·ShortleafPine·Proximal·Slow+\beta_54·YellowPoplar·Proximal·Slow+\beta_55·RedGum·Proximal·Slow$$
+The Least Square means of the fitted model is 6223. (Values for $\beta$s are listed in Table...) All other terms in the formula are indicator variables. For example, a sample taken at distal location of branch 1 of Shortleaf Pine with slow transpiration would have terms $ShortleafPine,Distal,Branch2,Slow$ equal to $1$, and all other terms equal to $0$.
+
+```{r final}
+tm5.aov <- aov(moisture ~ species:branch+species:branch:transpiration+species:branch:location+species*location*transpiration-species:branch:location, data=treemoist)
+summary(tm5.aov)
+```
+```{r}
+ls<-coef(tm5.aov)
+```
+
+
+## Some Visualisations(To be removed)
+```{r}
+interaction.plot(treemoist$species,treemoist$location, treemoist$moisture)
+```
+
+```{r}
+interaction.plot(treemoist$species,treemoist$transpiration, treemoist$moisture)
+```
+```{r}
+interaction.plot(treemoist$transpiration,treemoist$location, treemoist$moisture)
+```
+```{r}
+interaction.plot(treemoist$species:treemoist$branch,treemoist$location, treemoist$moisture)
+```
+
+
+```{r}
+interaction.plot(treemoist$species:treemoist$branch,treemoist$transpiration, treemoist$moisture)
+```
