@@ -3,8 +3,21 @@ title: "Project 1: Moisture Content of Tree Branches"
 author: "Yingxue YU, Guanqun LIU, Yulun Jiang"
 date: '2022-03-31'
 geometry: margin=2.54cm
+fontsize: 12pt
+header-includes:
+  - \usepackage{indentfirst}
+  - \usepackage{fancyhdr}
+  - \pagestyle{fancy}
+  - \setlength\parindent{24pt}
+  - \fancyhead[L]{Yingxue YU, Guanqun LIU, Yulun Jiang}
+indent: true
 output: pdf_document
+
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -22,26 +35,31 @@ df['moisture_content'] <- df['moisture_content'] / 10
 ```
 
 ## I. Introduction
-This dataset is originally collected and used for J. Joseph McDermott's botanical research on the effect of cutting methods have on the moisture content of tree branch samples in 1941. In experiments, researchers use twig segments to confirm the moisture content of woody structure. If the sample is simultaneously cut at both ends, then the release of tension in both direction will not result in instantaneous water removal; whereas cutting at one single end will lead to rapid water loss in the vicinity of cut. 
 
-Grounded on this fact, we conduct a statistical analysis on validating how different cutting methods will affect the extent of water removal given different cut samples. We intend to find an estimation model of how each factor given in the dataset and their interaction terms with cutting methods are related to the mass of moisture content. We will carry out an exploratory data analysis in section II to examine and preprocess the data. Then we will process our data modeling and assessment results in section III, IV, and V. Finally we will conclude our analysis and which part in the original analysis should be criticized. 
+This dataset is originally collected and used for J. Joseph McDermott's botanical research on the effect of cutting methods have on the moisture content of tree branch samples in 1941. In experiments, researchers use twig segments to confirm the moisture content of woody structure. If the sample is simultaneously cut at both ends, then the release of tension in both direction will not result in instantaneous water removal; whereas cutting at one single end will lead to rapid water loss in the vicinity of cut.
+
+Grounded on this fact, we conduct a statistical analysis on validating how different cutting methods will affect the extent of water removal given different cut samples. We intend to find an estimation model of how each factor given in the dataset and their interaction terms with cutting methods are related to the mass of moisture content. We will carry out an exploratory data analysis in section II to examine and preprocess the data. Then we will process our data modeling and assessment results in section III, IV, and V. Finally we will conclude our analysis and which part in the original analysis should be criticized.
 
 ## II. EDA
-### 2.1 Data Validation
-The dataset includes $120$ branch samples, includes 4 variable columns: **species, branch/species, location/branch**, and **transpiration **. The moisture content in the last column is expressed in $10 \times \%$ of its dry sample weight. Under each species, for each possible combination of cutting location (Location/Branch) and transpiration type(Transpiration), we have $5$ sample measurements of moisture contents, which also reveals that the dataset is balanced. We will later exclude the **branch/species** column because it works as an indicator of the former combination. A variance summary table is provided below. In "Location/Branch", "central" refers to simultaneous cut at both ends, "distal" and "proximal" refer to single cuts at branch-terminal end and tree-side respectively. We will keep the numerical values of the classes for analysis consistency and transform the response scale to $1 \times \%$ of dry sample weight. 
 
-| **Var Name** | **Type** | **Category** | **Classes** | **Detail** |
-|:-:|:-:|:-:|:-:|:--|
-| **Species** | num | categorical | 4 | 1=Loblolly Pine 2=Shortleaf Pine \ 3=Yellow Poplar 4=Red Gum
-| **Location/Branch** | num | categorical | 3 | 1=Central 2=Distal 3=Proximal
-| **Transpiration** | num | categorical | 2 | 1=Rapid 2=Slow
-| **MoistureContent** | num | continuous | N/A | **Target Response** |
+### 2.1 Data Validation
+
+The dataset includes $120$ branch samples, includes 4 variable columns: **species, branch/species, location/branch**, and **transpiration** . The moisture content in the last column is expressed in $10 \times \%$ of its dry sample weight. Under each species, for each possible combination of cutting location (Location/Branch) and transpiration type(Transpiration), we have $5$ sample measurements of moisture contents, which also reveals that the dataset is balanced. We will later exclude the **branch/species** column because it works as an indicator of the former combination. A variance summary table is provided below. In "Location/Branch", "central" refers to simultaneous cut at both ends, "distal" and "proximal" refer to single cuts at branch-terminal end and tree-side respectively. We will keep the numerical values of the classes for analysis consistency and transform the response scale to $1 \times \%$ of dry sample weight.
+
+|    **Var Name**     | **Type** | **Category** | **Classes** | **Detail**                                                  |
+|:-------------------:|:--------:|:------------:|:-----------:|:------------------------------------------------------------|
+|     **Species**     |   num    | categorical  |      4      | 1=Loblolly Pine 2=Shortleaf Pine  3=Yellow Poplar 4=Red Gum |
+| **Location/Branch** |   num    | categorical  |      3      | 1=Central 2=Distal 3=Proximal                               |
+|  **Transpiration**  |   num    | categorical  |      2      | 1=Rapid 2=Slow                                              |
+| **MoistureContent** |   num    |  continuous  |     N/A     | **Target Response**                                         |
 
 ```{r, echo=FALSE, include=FALSE}
 dim(df)
 sum(is.na(df))
 ```
+
 ### 2.2 Univariate Analysis
+
 ```{r, fig.width=8, fig.height=1.8, echo=FALSE}
 library(data.table)
 library(ggplot2)
@@ -53,11 +71,12 @@ plt3 <- ggplot(df, aes(x=factor(transpiration))) + geom_bar(stat="count", width 
 plt4 <- ggplot(df, aes(x=moisture_content)) + geom_histogram(bins=40, boundary=1) +xlab("Moisture Content")+ylab("")
 grid.arrange(plt1, plt2, plt3, plt4, ncol=4, top="Fig. 1: Frequency Count of Variates")
 ```
+
 From the histograms above, we can see that for "Species", "Location/Branch" and "Transpiration", the variety in each variate is equally distributed. For the continuous response variable, we expand its value distribution analysis (Fig. 2). The distribution of moisture content is slightly left-skewed, with more suspected extreme outliers at higher percentiles. 50% of samples fall into the interval $[102.5, 124.7]$. From the Q-Q plot, we can corroborate that the distribution is more left skewed. The result of Kolmogorov-Smirnov test also rejects the null hypothesis of its normality.
+
 ```{r, include=FALSE}
 ks.test(df$moisture_content, "pnorm", mean=mean(df$moisture_content), sd=sd(df$moisture_content))
 ```
-
 
 ```{r, fig.width=8, fig.height=2.2, fig.align='center', echo=FALSE}
 library(knitr)
@@ -81,6 +100,7 @@ grid.arrange(tbl1, plt5, plt9, ncol=3, top=textGrob("Fig. 2: Basic Statistics of
 ```
 
 ### 2.3 Bivariate/Multivariate Analysis
+
 Between categorical variables, we use two way tables (Table 1) to capture the frequency under each combined category. Frequencies of all categories under each pair of categorical variables are equal. Based on these tables, we conduct $\chi^{2}$ tests and the result (Table 2) shows that all any two categorical variables are independent to each other. As for the categorical variables with the continuous target response (moisture content), we draw side-by-side boxplots of each pair and conduct the ANOVA analysis. ANOVA confirms the significance of category mean difference of **species**(tree species), **location/branch** (cutting method), **transpiration**(transpiration), and the interaction term of species and transpiration at 0.001 level. This shows an apparent difference from the original paper that **location/branch** and **species** are at 0.001 level; **transpiration**, the interaction term of cutting method and species, and the interaction term of all three variables are at 0.01 level; and the interaction term of transpiration and species is at 0.05 level.
 
 ```{r, fig.width=12, fig.height=1, fig.align='center', include=FALSE, echo=FALSE}
@@ -120,6 +140,7 @@ tbl4 <- as.data.frame(tbl4)
 tbl4[4,] <- c("Total", 60, 60, 120)
 #rownames(tbl4)[4] <- c("Total")
 ```
+
 ```{r, fig.width=5, fig.height=1.5, fig.align='center', echo=FALSE}
 #tbl2 <- tableGrob(tbl2, theme = ttheme_default(base_size = 5))
 #tbl3 <- tableGrob(tbl3, theme = ttheme_default(base_size = 5))
@@ -147,6 +168,7 @@ chi_df <- data.frame("X2 test" = c("Species/Location", "Species/Transpiration", 
 
 kable(chi_df, caption="Chi-square Test Result", label = 2)
 ```
+
 ```{r, fig.width=8, fig.height=2, fig.align='center', echo=FALSE}
 library(ggplot2)
 library(gridExtra)
@@ -155,6 +177,7 @@ plt7 <- ggplot(df, aes(x=factor(location), y=moisture_content)) + geom_boxplot(w
 plt8 <- ggplot(df, aes(x=factor(transpiration), y=moisture_content)) + geom_boxplot(width=0.5, outlier.colour="red", outlier.shape=10) + xlab("Transpiration") +ylab("")
 grid.arrange(plt6, plt7, plt8, ncol=3, top="Fig. 3: Boxplots")
 ```
+
 ```{r, include=FALSE, echo=FALSE}
 model.1 <- aov(moisture_content ~ factor(species), data = df_new)
 model.2 <- aov(moisture_content ~ factor(location), data = df_new)
@@ -172,7 +195,7 @@ summary(model.6)
 summary(model.7)
 ```
 
-```{r, echo=FALSE}
+```{r, include=FALSE, echo=FALSE}
 library(data.table)
 library(knitr)
 
@@ -185,12 +208,120 @@ anova_df <- data.frame("ANOVA" = c("Species", "Loation", "Transpiration", "S:L",
 kable(anova_df, caption="One-way/Two-way ANOVA Test Result (Comma - Interaction Term)", label = 3)
 ```
 
+## III. 3-way ANOVA 
+  
+### 3.1 Model Fitting
 
-## III. Model Fitting
+To test the effect of the method of cutting, which is indicated by location variable, on the moisture contents, an analysis of variance is made. Model is chosen by performing stepAIC. Three runs of stepAIC are performed: a forward selection starting from intercept, a backward elimination from all first order factors and second order interactions, and a forward-backward search that starts from all first order factors. The same model is selected by all 3 runs, which is 
+\begin{align*}
+moisture = \beta_0 &+ \beta_1\cdot ShortleafPine+ \beta_2\cdot YellowPoplar+ \beta_3\cdot RedGum+ \beta_4\cdot Distal \\ &+ \beta_5\cdot Proximal + \beta_6\cdot Slow +\beta_7\cdot ShortleafPine\cdot Slow\\&+\beta_8\cdot YellowPoplar\cdot Slow+\beta_9\cdot RedGum\cdot Slow\\&+\beta_{10}\cdot Distal\cdot Slow+\beta_{11}\cdot Proximal\cdot Slow
+\end{align*}
 
-## IV. Assessment
+```{r include=FALSE}
+library(MASS)
+```
 
-## V. Plots
+```{r data import, include=FALSE}
+treemoist<-read.delim("treemoist.dat",header=FALSE,col.names = list("species","branch","location","transpiration","moisture"),sep="",colClasses=list("factor","factor","factor","factor","integer"))
+```
 
-## VI. Conclusion
+```{r include=FALSE}
+max.model <- aov(moisture ~(species+location+transpiration)^2,data=treemoist)
+min.model <- aov(moisture ~ 1, data=treemoist)
+mid.model <- aov(moisture~ species+location+transpiration,data=treemoist)
+```
 
+```{r include=FALSE}
+fwd.model <- stepAIC(min.model, direction="forward",scope=list(lower=min.model,upper=max.model))
+bwd.model <- stepAIC(max.model,direction="backward")
+both.model<-stepAIC(mid.model,direction="both",scope=list(lower=min.model,upper=max.model))
+```
+
+```{r include=FALSE}
+summary(fwd.model)
+summary(bwd.model)
+summary(both.model)
+```
+
+The Least Square means of the fitted model is 153. (Values for $\beta$s are listed in Table...) All other terms in the formula are indicator variables. For example, a sample taken at distal location of a branch of Shortleaf Pine with slow transpiration would have terms $ShortleafPine,Distal,Slow$ equal to $1$, and all other terms equal to $0$.
+
+```{r final, include=FALSE, echo=TRUE}
+final.aov <- aov(moisture ~ species + location + transpiration + species:transpiration + 
+    location:transpiration, data=treemoist)
+summary(final.aov)
+```
+```{r include=FALSE}
+coef(final.aov)
+```
+
+### 3.2 Model Assessment
+Our model makes the following assumptions on data:
+
+* Errors have mean 0.
+
+* Errors are homoscedastic (same variance).
+  
+* Errors are uncorrelated.
+
+* Errors are normally distributed.
+  
+```{r diag, results='hide', fig.height=4, fig.width=12, fig.cap="3-way ANOVA assesment", echo=FALSE}
+# Diagnostic plots to assess the validity of the model assumptions :
+par(mfrow=c(1,3))
+plot(final.aov$residuals, main="Residuals Plot",
+     )
+abline(a=mean(final.aov$residuals), 
+       b=lm(formula = final.aov$residuals ~ 1)$coefficients,
+       col="red")
+plot(final.aov, which = 2)
+plot(final.aov, which = 1)
+# Shapiro-Wilk Test for normality 
+shapiro.test(final.aov$residuals)
+```
+Above we first plot the residuals and the fitted regression lines. We can clearly observe the fitted line has a mean value of 0 and a slope of 0, indicating that errors are centered around 0 with the average error being 0. We then show the QQ plot of the residuals on the second figure. It indicated that the normality may be violated due to the clear deviation on the right tail. However, we further conduct Shapiro-wilk test and accept its normality with a p-value $p=5.2e-10$. We plot the Residuals vs Fitted plot on the third figure to examine the homoscedasticity assumption. The fitted curve is nearly a straight line with slope 0, supporting the homoscedasticity property.
+
+
+
+### 3.3 Interpretation : post-hoc test
+
+The Tukey's Honestly-Significant-Difference (TukeyHSD) test enables us
+to know which groups are different from one another. The following
+output shows the pairwise differences 95% confidence interval between
+the 5 types of varieties and 7 types of fusarium strains : If the
+interval does not include zero then the difference is significant.
+
+```{r results='hide', fig.width=8, fig.height=5, out.width="100%", echo=FALSE}
+
+# Tukey honest significant differences
+hsd <- TukeyHSD(final.aov)
+
+# Plot 95% Confidence Intervals
+par(mfrow=c(2,3), lheight=1)
+plot(hsd, las=1)
+
+```
+\noindent From the post-hoc test results, we see that there are
+statistically significant differences (p-value \< 0.05) between the
+following groups 
+```{=tex}
+\begin{itemize}
+  \item species : groups 1-2, 1-4, 2-3, 2-4
+  \item location : groups 1-3
+  \item species:transpiration: 2:1-1:1, 2:2-1:1, 4:2-1:1, 2:1-2:1, 2:2-2:1, 2:2-3:1, 4:2-3:1, 2:2-4:1, 4:2-4:1, 4:3-4:1, 3:2-1:2, 3:3-1:2, 3:2-2:2, 3:3-2:2
+  \item location:transpotation: 3:1-1:1, 1:2-1:1, 2:2-1:1, 3:2-1:1, 3:2-2:1
+\end{itemize}
+```
+To conclude, the Tukey post-hoc test revealed a
+statistically-significant difference between the species 2 (Shortleaf Pine) and all the others and between the
+location 1 (Central) and 3 (Proximal).There are also significant difference between groups different in the combination of  species and transpiration, as well as the location.
+
+## IV. Conclusion
+In order to compare the tree moisture in different types of species, locations and transpiration statistically, we implement a 3-way ANOVA
+following such sequence : data preliminary exploration, model assumption
+checking, model selection and fitting, model assessment and
+interpretation. In conclusion, we find a statistically-significant
+difference in the tree moisture by species, location, transpiration and combination of species with transpiration, combination of locations with transpiration. However, due to the nature of the
+given dataset, such as the small number of observations, we can't
+statistically conclude if the interaction between these terms is
+significant or not. To solve this issue, more data is needed to reach a
+credible result.
