@@ -1,7 +1,7 @@
 ---
 title: "Project 1: Moisture Content of Tree Branches"
 author: "Yingxue YU, Guanqun LIU, Yulun Jiang"
-date: '2022-03-31'
+date: '2022-04-08'
 geometry: margin=2.54cm
 fontsize: 12pt
 header-includes:
@@ -195,7 +195,7 @@ summary(model.6)
 summary(model.7)
 ```
 
-```{r, include=FALSE, echo=FALSE}
+```{r, echo=FALSE}
 library(data.table)
 library(knitr)
 
