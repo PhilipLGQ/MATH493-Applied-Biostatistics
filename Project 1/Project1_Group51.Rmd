@@ -48,10 +48,10 @@ The dataset includes $120$ branch samples, includes 4 variable columns: **specie
 
 |    **Var Name**     | **Type** | **Category** | **Classes** | **Detail**                                                  |
 |:-------------------:|:--------:|:------------:|:-----------:|:------------------------------------------------------------|
-|     **Species**     |   num    | categorical  |      4      | 1=Loblolly Pine 2=Shortleaf Pine  3=Yellow Poplar 4=Red Gum |
-| **Location/Branch** |   num    | categorical  |      3      | 1=Central 2=Distal 3=Proximal                               |
-|  **Transpiration**  |   num    | categorical  |      2      | 1=Rapid 2=Slow                                              |
-| **MoistureContent** |   num    |  continuous  |     N/A     | **Target Response**                                         |
+|     Species     |   num    | categorical  |      4      | 1=Loblolly Pine 2=Shortleaf Pine  3=Yellow Poplar 4=Red Gum |
+| Location/Branch |   num    | categorical  |      3      | 1=Central 2=Distal 3=Proximal                               |
+|  Transpiration  |   num    | categorical  |      2      | 1=Rapid 2=Slow                                              |
+| MoistureContent |   num    |  continuous  |     N/A     | **Target Response**                                         |
 
 ```{r, echo=FALSE, include=FALSE}
 dim(df)
@@ -93,7 +93,7 @@ rownames(m_summary)[8] <- c("SD")
 colnames(m_summary) <- c("Moisture Content")
 plt5 <- ggplot(df, aes(x="", y=moisture_content)) + geom_boxplot(width=0.5, outlier.colour="red", outlier.shape=12) + xlab("") + ylab("Value")
 plt9 <- ggplot(df, aes(sample=moisture_content)) + stat_qq() + stat_qq_line() + ylab("value") + xlab("")
-tbl1 <- tableGrob(m_summary, theme = ttheme_default(base_size = 6))
+tbl1 <- tableGrob(m_summary, theme = ttheme_default(base_size = 7))
 
 grid.arrange(tbl1, plt5, plt9, ncol=3, top=textGrob("Fig. 2: Basic Statistics of Response Variate", gp=gpar(fontsize=12, font=8)))
 
