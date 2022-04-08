@@ -36,15 +36,15 @@ df['moisture_content'] <- df['moisture_content'] / 10
 
 ## 1. Introduction
 
-This dataset is originally collected and used for J. Joseph McDermott's botanical research on the effect of cutting methods have on the moisture content of tree branch samples in 1941. In experiments, researchers use twig segments to confirm the moisture content of woody structure. If the sample is simultaneously cut at both ends, then the release of tension in both direction will not result in instantaneous water removal; whereas cutting at one single end will lead to rapid water loss in the vicinity of cut.
+This dataset is originally collected and used for J. Joseph McDermott’s botanical research on the effect cutting methods have on the moisture content of tree branch samples in 1941. In experiments, researchers use twig segments to confirm the moisture content of woody structures. If the sample is simultaneously cut at both ends, then the release of tension in both directions will not result in instantaneous water removal; whereas cutting at one single end will lead to rapid water loss in the vicinity of the cut.
 
-Grounded on this fact, we conduct a statistical analysis on validating how different cutting methods will affect the extent of water removal given different cut samples. We intend to find an estimation model of how each factor given in the dataset and their interaction terms with cutting methods are related to the mass of moisture content. We will carry out an exploratory data analysis in section II to examine and preprocess the data. Then we will process our data modeling and assessment results in section III, IV, and V. Finally we will conclude our analysis and which part in the original analysis should be criticized.
+Grounded on this fact, we conduct a statistical analysis on validating how different cutting methods will affect the extent of water removal given different cut samples. We intend to find an estimation model of how each factor is given in the dataset and their interaction terms with cutting methods are related to the mass of moisture content. We will carry out an exploratory data analysis in section 2 to examine and preprocess the data. Then we will process our data modeling and assessment results in section 3. Finally, we will conclude our analysis and which part of the original analysis should be criticized.
 
 ## 2. EDA
 
 ### 2.1 Data Validation
 
-The dataset includes $120$ branch samples, includes 4 variable columns: **species, branch/species, location/branch**, and **transpiration** . The moisture content in the last column is expressed in $10 \times \%$ of its dry sample weight. Under each species, for each possible combination of cutting location (Location/Branch) and transpiration type(Transpiration), we have $5$ sample measurements of moisture contents, which also reveals that the dataset is balanced. We will later exclude the **branch/species** column because it works as an indicator of the former combination. A variance summary table is provided below. In "Location/Branch", "central" refers to simultaneous cut at both ends, "distal" and "proximal" refer to single cuts at branch-terminal end and tree-side respectively. We will keep the numerical values of the classes for analysis consistency and transform the response scale to $1 \times \%$ of dry sample weight.
+The dataset includes $120$ branch samples, includes 4 variable columns: **species, branch/species, location/branch**, and **transpiration** . The moisture content in the last column is expressed in $10 \times \%$ of its dry sample weight. Under each species, for each possible combination of cutting location (Location/Branch) and transpiration type(Transpiration), we have $5$ sample measurements of moisture contents, which also reveals that the dataset is balanced. We will later exclude the **branch/species** column because it works as an indicator of the former combination. A variance summary table is provided below. In "Location/Branch", "central" refers to simultaneous cuts at both ends, "distal" and "proximal" refer to single cuts at the branch-terminal end and tree-side respectively. We will keep the numerical values of the classes for analysis consistency and transform the response scale to $1 \times \%$ of the dry sample weight.
 
 |    **Var Name**     | **Type** | **Category** | **Classes** | **Detail**                                                  |
 |:-------------------:|:--------:|:------------:|:-----------:|:------------------------------------------------------------|
@@ -72,7 +72,7 @@ plt4 <- ggplot(df, aes(x=moisture_content)) + geom_histogram(bins=40, boundary=1
 grid.arrange(plt1, plt2, plt3, plt4, ncol=4, top="Fig. 1: Frequency Count of Variates")
 ```
 
-From the histograms above, we can see that for "Species", "Location/Branch" and "Transpiration", the variety in each variate is equally distributed. For the continuous response variable, we expand its value distribution analysis (Fig. 2). The distribution of moisture content is slightly left-skewed, with more suspected extreme outliers at higher percentiles. 50% of samples fall into the interval $[102.5, 124.7]$. From the Q-Q plot, we can corroborate that the distribution is more left skewed. The result of Kolmogorov-Smirnov test also rejects the null hypothesis of its normality.
+From the histograms above, we can see that for "Species", "Location/Branch" and "Transpiration", the variety in each variate is equally distributed. For the continuous response variable, we expand its value distribution analysis (Fig. 2). The distribution of moisture content is slightly left-skewed, with more suspected extreme outliers at higher percentiles. 50% of samples fall into the interval $[102.5, 124.7]$. From the Q-Q plot, we can corroborate that the distribution is more left-skewed. The result of the Kolmogorov-Smirnov test also rejects the null hypothesis of its normality.
 
 ```{r, include=FALSE}
 ks.test(df$moisture_content, "pnorm", mean=mean(df$moisture_content), sd=sd(df$moisture_content))
@@ -101,7 +101,7 @@ grid.arrange(tbl1, plt5, plt9, ncol=3, top=textGrob("Fig. 2: Basic Statistics of
 
 ### 2.3 Bivariate/Multivariate Analysis
 
-Between categorical variables, we use two way tables (Table 1) to capture the frequency under each combined category. Frequencies of all categories under each pair of categorical variables are equal. Based on these tables, we conduct $\chi^{2}$ tests and the result (Table 2) shows that all any two categorical variables are independent to each other. As for the categorical variables with the continuous target response (moisture content), we draw side-by-side boxplots of each pair and conduct the ANOVA analysis. ANOVA confirms the significance of category mean difference of **species**(tree species), **location/branch** (cutting method), **transpiration**(transpiration), and the interaction term of species and transpiration at 0.001 level. This shows an apparent difference from the original paper that **location/branch** and **species** are at 0.001 level; **transpiration**, the interaction term of cutting method and species, and the interaction term of all three variables are at 0.01 level; and the interaction term of transpiration and species is at 0.05 level.
+Between categorical variables, we use two-way tables (Table 1) to capture the frequency under each combined category. Frequencies of all categories under each pair of categorical variables are equal. Based on these tables, we conduct $\chi^{2}$ tests and the result (Table 2) shows that any two categorical variables are independent of each other. As for the categorical variables with the continuous target response (moisture content), we draw side-by-side boxplots of each pair and conduct the ANOVA analysis. ANOVA confirms the significance of the category mean difference of **species**(tree species), **location/branch** (cutting method), **transpiration**(transpiration), and the interaction term of species and transpiration at 0.001 level. This shows an apparent difference from the original paper that **location/branch** and **species** are at 0.001 level; **transpiration**, the interaction term of cutting method and species, and the interaction term of all three variables are at 0.01 level, and the interaction term of transpiration and species is at 0.05 level.
 
 ```{r, fig.width=12, fig.height=1, fig.align='center', include=FALSE, echo=FALSE}
 library(ggplot2)
@@ -208,7 +208,7 @@ anova_df <- data.frame("ANOVA" = c("Species", "Loation", "Transpiration", "S:L",
 kable(anova_df, caption="One-way/Two-way ANOVA Test Result (Comma - Interaction Term)", label = 3)
 ```
 
-## 3. 3-way ANOVA 
+## 3. 2-way ANOVA 
   
 ### 3.1 Model Fitting
 
@@ -316,11 +316,11 @@ statistically-significant difference between the species 2 (Shortleaf Pine) and 
 location 1 (Central) and 3 (Proximal).There are also significant difference between groups different in the combination of  species and transpiration, as well as the location.
 
 ## 4. Conclusion
-In order to compare the tree moisture in different types of species, locations and transpiration statistically, we implement a 3-way ANOVA
-following such sequence : data preliminary exploration, model assumption
-checking, model selection and fitting, model assessment and
+To compare the tree moisture in different types of species, locations and transpiration statistically, we implement a 3-way ANOVA
+following such sequence: data preliminary exploration, model assumption
+checking, model selection, and fitting, model assessment, and
 interpretation. In conclusion, we find a statistically-significant
-difference in the tree moisture by species, location, transpiration and combination of species with transpiration, combination of locations with transpiration. However, due to the nature of the
+the difference in the tree moisture by species, location, transpiration, and combination of species with transpiration, the combination of locations with transpiration. However, due to the nature of the
 given dataset, such as the small number of observations, we can't
 statistically conclude if the interaction between these terms is
 significant or not. To solve this issue, more data is needed to reach a

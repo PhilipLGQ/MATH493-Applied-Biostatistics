@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.4.8)  8 APR 2022 18:06
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.4.8)  8 APR 2022 18:20
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -474,43 +474,43 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 78.
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 108.
+(Font)              <12> on input line 107.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 108.
+(Font)              <8> on input line 107.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 108.
+(Font)              <6> on input line 107.
 
-Overfull \hbox (4.2996pt too wide) in paragraph at lines 136--137
+Overfull \hbox (4.2996pt too wide) in paragraph at lines 135--136
  []\T1/lmr/bx/n/12 Category 
  []
 
 
-Overfull \hbox (5.23434pt too wide) in paragraph at lines 144--144
+Overfull \hbox (5.23434pt too wide) in paragraph at lines 143--143
  []|\T1/lmr/m/n/12 categorical| 
  []
 
 
-Overfull \hbox (13.02885pt too wide) in paragraph at lines 146--146
+Overfull \hbox (13.02885pt too wide) in paragraph at lines 145--145
  []|\T1/lmr/m/n/12 Location/Branch| 
  []
 
 
-Overfull \hbox (5.23434pt too wide) in paragraph at lines 146--146
+Overfull \hbox (5.23434pt too wide) in paragraph at lines 145--145
  []|\T1/lmr/m/n/12 categorical| 
  []
 
 
-Overfull \hbox (5.23434pt too wide) in paragraph at lines 148--148
+Overfull \hbox (5.23434pt too wide) in paragraph at lines 147--147
  []|\T1/lmr/m/n/12 categorical| 
  []
 
 
-Overfull \hbox (12.11493pt too wide) in paragraph at lines 149--149
+Overfull \hbox (12.11493pt too wide) in paragraph at lines 148--148
  []|\T1/lmr/m/n/12 MoistureContent| 
  []
 
 
-Overfull \hbox (5.30089pt too wide) in paragraph at lines 149--149
+Overfull \hbox (5.30089pt too wide) in paragraph at lines 148--148
  []|\T1/lmr/m/n/12 continuous| 
  []
 
@@ -520,17 +520,17 @@ Overfull \hbox (5.30089pt too wide) in paragraph at lines 149--149
 <Project1_Group51_files/figure-latex/unnamed-chunk-3-1.pdf, id=58, 578.16pt x 129.48375pt>
 File: Project1_Group51_files/figure-latex/unnamed-chunk-3-1.pdf Graphic file (type pdf)
 <use Project1_Group51_files/figure-latex/unnamed-chunk-3-1.pdf>
-Package pdftex.def Info: Project1_Group51_files/figure-latex/unnamed-chunk-3-1.pdf  used on input line 156.
+Package pdftex.def Info: Project1_Group51_files/figure-latex/unnamed-chunk-3-1.pdf  used on input line 155.
 (pdftex.def)             Requested size: 469.75385pt x 105.20526pt.
 
-Overfull \hbox (23.99846pt too wide) in paragraph at lines 156--157
+Overfull \hbox (23.99846pt too wide) in paragraph at lines 155--156
 [][] 
  []
 
 <Project1_Group51_files/figure-latex/unnamed-chunk-5-1.pdf, id=59, 578.16pt x 158.5925pt>
 File: Project1_Group51_files/figure-latex/unnamed-chunk-5-1.pdf Graphic file (type pdf)
 <use Project1_Group51_files/figure-latex/unnamed-chunk-5-1.pdf>
-Package pdftex.def Info: Project1_Group51_files/figure-latex/unnamed-chunk-5-1.pdf  used on input line 168.
+Package pdftex.def Info: Project1_Group51_files/figure-latex/unnamed-chunk-5-1.pdf  used on input line 167.
 (pdftex.def)             Requested size: 469.75385pt x 128.85606pt.
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -543,7 +543,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 <Project1_Group51_files/figure-latex/unnamed-chunk-10-1.pdf, id=80, 578.16pt x 144.54pt>
 File: Project1_Group51_files/figure-latex/unnamed-chunk-10-1.pdf Graphic file (type pdf)
 <use Project1_Group51_files/figure-latex/unnamed-chunk-10-1.pdf>
-Package pdftex.def Info: Project1_Group51_files/figure-latex/unnamed-chunk-10-1.pdf  used on input line 259.
+Package pdftex.def Info: Project1_Group51_files/figure-latex/unnamed-chunk-10-1.pdf  used on input line 258.
 (pdftex.def)             Requested size: 469.75385pt x 117.43845pt.
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -553,17 +553,17 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [3 <./Project1_Group51_files/figure-latex/unnamed-chunk-10-1.pdf>]
-LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 291.
+LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 290.
 (/home/philipliu/.TinyTeX/texmf-dist/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 <Project1_Group51_files/figure-latex/diag-1.pdf, id=94, 867.24pt x 289.08pt>
 File: Project1_Group51_files/figure-latex/diag-1.pdf Graphic file (type pdf)
 <use Project1_Group51_files/figure-latex/diag-1.pdf>
-Package pdftex.def Info: Project1_Group51_files/figure-latex/diag-1.pdf  used on input line 300.
+Package pdftex.def Info: Project1_Group51_files/figure-latex/diag-1.pdf  used on input line 299.
 (pdftex.def)             Requested size: 469.75827pt x 156.58607pt.
 
-Overfull \hbox (24.00288pt too wide) in paragraph at lines 300--311
+Overfull \hbox (24.00288pt too wide) in paragraph at lines 299--310
 [][]
  []
 
@@ -578,10 +578,10 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 <Project1_Group51_files/figure-latex/unnamed-chunk-18-1.pdf, id=108, 578.16pt x 361.35pt>
 File: Project1_Group51_files/figure-latex/unnamed-chunk-18-1.pdf Graphic file (type pdf)
 <use Project1_Group51_files/figure-latex/unnamed-chunk-18-1.pdf>
-Package pdftex.def Info: Project1_Group51_files/figure-latex/unnamed-chunk-18-1.pdf  used on input line 322.
+Package pdftex.def Info: Project1_Group51_files/figure-latex/unnamed-chunk-18-1.pdf  used on input line 321.
 (pdftex.def)             Requested size: 469.75385pt x 293.59616pt.
 
-Overfull \hbox (23.99846pt too wide) in paragraph at lines 322--326
+Overfull \hbox (23.99846pt too wide) in paragraph at lines 321--325
 [][]
  []
 
@@ -602,7 +602,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [6] (./Project1_Group51.aux)
 Package rerunfilecheck Info: File `Project1_Group51.out' has not changed.
-(rerunfilecheck)             Checksum: EE1854A6E457EFA1A59552B65230A582;1539.
+(rerunfilecheck)             Checksum: A2543A9598A68184CDEB1812683C5B5E;1539.
  ) 
 Here is how much of TeX's memory you used:
  11388 strings out of 480228
@@ -613,7 +613,7 @@ Here is how much of TeX's memory you used:
  14 hyphenation exceptions out of 8191
  60i,12n,63p,379b,439s stack positions out of 10000i,1000n,20000p,200000b,200000s
 {/home/philipliu/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}{/home/philipliu/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/home/philipliu/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/home/philipliu/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/home/philipliu/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}</home/philipliu/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></home/philipliu/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi12.pfb></home/philipliu/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></home/philipliu/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb></home/philipliu/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb></home/philipliu/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb>
-Output written on Project1_Group51.pdf (6 pages, 197060 bytes).
+Output written on Project1_Group51.pdf (6 pages, 197035 bytes).
 PDF statistics:
  168 PDF objects out of 1000 (max. 8388607)
  134 compressed objects within 2 object streams
