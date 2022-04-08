@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.4.8)  8 APR 2022 18:03
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.4.8)  8 APR 2022 18:06
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -602,18 +602,18 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [6] (./Project1_Group51.aux)
 Package rerunfilecheck Info: File `Project1_Group51.out' has not changed.
-(rerunfilecheck)             Checksum: 98549CE389C0F1D08F027D09F9E1EC42;1559.
+(rerunfilecheck)             Checksum: EE1854A6E457EFA1A59552B65230A582;1539.
  ) 
 Here is how much of TeX's memory you used:
  11388 strings out of 480228
- 177778 string characters out of 5895465
- 472879 words of memory out of 5000000
+ 177742 string characters out of 5895465
+ 472875 words of memory out of 5000000
  29121 multiletter control sequences out of 15000+600000
  512280 words of font info for 67 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  60i,12n,63p,379b,439s stack positions out of 10000i,1000n,20000p,200000b,200000s
 {/home/philipliu/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}{/home/philipliu/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/home/philipliu/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/home/philipliu/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/home/philipliu/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}</home/philipliu/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></home/philipliu/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi12.pfb></home/philipliu/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></home/philipliu/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb></home/philipliu/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb></home/philipliu/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb>
-Output written on Project1_Group51.pdf (6 pages, 196949 bytes).
+Output written on Project1_Group51.pdf (6 pages, 197060 bytes).
 PDF statistics:
  168 PDF objects out of 1000 (max. 8388607)
  134 compressed objects within 2 object streams

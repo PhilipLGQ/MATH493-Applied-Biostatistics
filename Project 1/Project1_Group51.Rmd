@@ -34,13 +34,13 @@ df <- as.data.frame(df)
 df['moisture_content'] <- df['moisture_content'] / 10
 ```
 
-## I. Introduction
+## 1. Introduction
 
 This dataset is originally collected and used for J. Joseph McDermott's botanical research on the effect of cutting methods have on the moisture content of tree branch samples in 1941. In experiments, researchers use twig segments to confirm the moisture content of woody structure. If the sample is simultaneously cut at both ends, then the release of tension in both direction will not result in instantaneous water removal; whereas cutting at one single end will lead to rapid water loss in the vicinity of cut.
 
 Grounded on this fact, we conduct a statistical analysis on validating how different cutting methods will affect the extent of water removal given different cut samples. We intend to find an estimation model of how each factor given in the dataset and their interaction terms with cutting methods are related to the mass of moisture content. We will carry out an exploratory data analysis in section II to examine and preprocess the data. Then we will process our data modeling and assessment results in section III, IV, and V. Finally we will conclude our analysis and which part in the original analysis should be criticized.
 
-## II. EDA
+## 2. EDA
 
 ### 2.1 Data Validation
 
@@ -208,7 +208,7 @@ anova_df <- data.frame("ANOVA" = c("Species", "Loation", "Transpiration", "S:L",
 kable(anova_df, caption="One-way/Two-way ANOVA Test Result (Comma - Interaction Term)", label = 3)
 ```
 
-## III. 3-way ANOVA 
+## 3. 3-way ANOVA 
   
 ### 3.1 Model Fitting
 
@@ -315,7 +315,7 @@ To conclude, the Tukey post-hoc test revealed a
 statistically-significant difference between the species 2 (Shortleaf Pine) and all the others and between the
 location 1 (Central) and 3 (Proximal).There are also significant difference between groups different in the combination of  species and transpiration, as well as the location.
 
-## IV. Conclusion
+## 4. Conclusion
 In order to compare the tree moisture in different types of species, locations and transpiration statistically, we implement a 3-way ANOVA
 following such sequence : data preliminary exploration, model assumption
 checking, model selection and fitting, model assessment and
