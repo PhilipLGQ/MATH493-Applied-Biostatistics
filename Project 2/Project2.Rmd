@@ -1,0 +1,557 @@
+---
+title: "Report 2: Survival Analysis of Primary Biliary Cirrhosis"
+author: "Guanqun LIU"
+date: '2022-05-26'
+geometry: margin=2.54cm
+fontsize: 12pt
+header-includes:
+  - \usepackage{indentfirst}
+  - \usepackage{fancyhdr}
+  - \usepackage{caption}
+  - \usepackage{booktabs}
+  - \usepackage{multirow}
+  - \captionsetup[figure]{font=scriptsize}
+  - \captionsetup[table]{font=scriptsize}
+  - \pagestyle{fancy}
+  - \setlength\parindent{24pt}
+  - \fancyhead[L]{Liu}
+indent: true
+output: 
+    pdf_document: default
+
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+pbc <- read.csv('dataset-10259.csv')
+head(pbc)
+```
+
+## 1. Introduction
+
+Primary biliary cirrhosis is a relatively rare autoimmune liver disease that leading slow but progressive destruction of small bile ducts, which will result in permanent cirrhosis and liver decompensation. Patients may also suffer abdominal pain, diarrhea, and an increased risk of cancer. The dataset is originally collected from the Mayo Clinic trial of primary biliary cirrhosis (PBC) of the liver from 1974 to 1984. 424 PBC patients met the eligibility criteria for a randomized placebo-controlled trial of the drug D-penicillamine (DPCA). The first 312 data entries represent participants of the above trial and their data is mostly complete. The rest 112 patients declined to participate but agreed to record basic measurements and track survival. 6 of these cases were discarded due to track lost shortly after diagnosis. The purpose of this analysis is to investigate the effect of DPCA on the lifetime of patients with PBC, along with what covariates significantly influence patients' risk of death.
+
+## 2. EDA
+
+The dataset contains 418 data entries, corresponding to 312 trial participants and 106 additional cases in order. Each entry has 3 basic columns recording their survival time in days, status at endpoint (alive, transplant, dead), and treatments by DPCA/placebo. Besides, each entry has 15 covariates describing a patient's personal information (age, sex), clinical assay indexes, and other complications. Regarding all variable columns, the dataset contains 276 complete cases without missing values among 312 formal participants. The sex ratio of the dataset is at least $9:1$ (female to male) and 125 of the 312 formal participants died at the endpoint and the rest were alive (censored/transplant). To formalize the analysis, both censored and transplant status are considered alive. The defined variable table is shown in Appx.1 and the following analysis will be conducted on the 276 complete cases as stated above. 
+
+```{r, echo=FALSE, include=FALSE}
+pbc <- data.frame(pbc)
+sum(complete.cases(pbc))
+```
+
+```{r, echo=FALSE, include=FALSE}
+pbc <- pbc[complete.cases(pbc), ]
+
+pbc$status = ifelse(pbc$status == 2, 1, 0)
+pbc$sex = factor(pbc$sex, levels = c("m", "f"), labels = c(0, 1))
+# pbc$trt = factor(pbc$trt, levels = c(1, 2), labels=c("DPCA", "placebo"))
+# pbc$edema = factor(pbc$edema, levels = c(0, 0.5, 1), labels=c("no edema", "successfully treated/untreated", "edema"))
+```
+
+### 2.1 Univariate Analysis
+
+\noindent \textbf{Quantitative Variables}
+
+Combining the results in Table 1 and Figure 1, we can clearly see that covariates $bili$, $chol$, $copper$, $alk.phos$, $ast$, $trig$, and $protime$ have typical right-skewed distributions, which I will apply the log transformation to them to compensate for a normal distribution in survival analysis. The median survival time and patient ages are 1788 days after registration and 49.71 years respectively. 
+
+```{=latex}
+\begin{table}[ht]
+\centering
+\begingroup\scriptsize
+\begin{tabular}{rrrrrrrrrrrr}
+  \hline
+ & \textbf{time} & age & bili & chol & albumin & copper & alk.phos & ast & trig & platelet & protime \\ 
+  \hline
+mean & 1979.167 & 49.800 & 3.334 & 371.261 & 3.517 & 100.768 & 1996.612 & 124.119 & 124.978 & 261.772 & 10.736 \\ 
+  sd & 1112.380 & 10.523 & 4.601 & 234.788 & 0.405 & 88.269 & 2115.478 & 56.720 & 65.281 & 93.129 & 1.008 \\ 
+  median & 1788.000 & 49.710 & 1.400 & 310.000 & 3.545 & 74.000 & 1277.500 & 116.625 & 108.000 & 257.000 & 10.600 \\ 
+  min & 41.000 & 26.278 & 0.300 & 120.000 & 1.960 & 4.000 & 289.000 & 28.380 & 33.000 & 62.000 & 9.000 \\ 
+  max & 4556.000 & 78.439 & 28.000 & 1775.000 & 4.400 & 588.000 & 13862.400 & 457.250 & 598.000 & 563.000 & 17.100 \\ 
+  1st Qu. & 1185.750 & 41.513 & 0.800 & 249.500 & 3.310 & 42.750 & 922.500 & 82.458 & 85.000 & 200.000 & 10.000 \\ 
+  3rd Qu. & 2689.750 & 56.585 & 3.525 & 401.000 & 3.772 & 129.250 & 2068.250 & 153.450 & 151.250 & 318.250 & 11.200 \\ 
+  IQR & 1504.000 & 15.072 & 2.725 & 151.500 & 0.462 & 86.500 & 1145.750 & 70.992 & 66.250 & 118.250 & 1.200 \\ 
+  MAD & 1131.224 & 10.633 & 1.186 & 106.747 & 0.348 & 53.374 & 756.867 & 52.299 & 45.961 & 87.473 & 0.890 \\ 
+   \hline
+\end{tabular}
+\endgroup
+\caption{Summary statistics of numerical variables} 
+\end{table}
+```
+
+```{r, echo=FALSE, include=FALSE}
+library(xtable)
+quantpbc <- pbc[, c("time", "age", "bili", "chol", "albumin", "copper", "alk.phos", "ast", "trig", "platelet", "protime")]
+
+quantsum <- lapply(quantpbc, function(x) rbind( mean = round(mean(x), digits=3) ,
+                                              sd = round(sd(x), digits=3) ,
+                                              median = round(median(x), digits=3) ,
+                                              min = round(min(x), digits=3) ,
+                                              max = round(max(x), digits=3) ,
+                                              qu1 = round(quantile(x, probs = 0.25), digits=3) ,
+                                              qu3 = round(quantile(x, probs = 0.75), digits=3) ,
+                                              iqr = round(IQR(x), digits=3) ,
+                                              mad = round(mad(x), digits=3) ) )
+
+quantsum <- data.frame(quantsum)
+colnames(quantsum) <- c("time", "age", "bili", "chol", "albumin", "copper", "alk.phos", "ast", "trig", "platelet", "protime")
+rownames(quantsum) <- c("mean", "sd", "median", "min", "max", "1st Qu.", "3rd Qu.", "IQR", "MAD")
+
+print(xtable(quantsum, caption='Summary statistics of numerical variables', digits = c(3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3)), size="\\scriptsize")
+
+```
+
+```{r echo=FALSE, fig.align='center', fig.cap='Histograms of numerical variables', fig.height=4.5, fig.margin=FALSE, fig.width=8}
+# need fixation !!!!!!!
+par(mfrow = c(3, 4))
+hist(quantpbc$time, xlab=c("time (days)"), main = c("Survival time"))
+hist(quantpbc$age, xlab=c("age (years)"), main = c("Age"))
+hist(quantpbc$bili, xlab=c("bili (mg/dl)"), main = c("Serum bilirubin"))
+hist(quantpbc$chol, xlab=c("chol (mg/dl)"), main = c("Serum cholesterol"))
+hist(quantpbc$albumin, xlab=c("albumin (g/dl)"), main = c("Serum albumin"))
+hist(quantpbc$copper, xlab=c("copper (ug/day)"), main = c("Urine copper"))
+hist(quantpbc$alk.phos, xlab=c("alk.phos (U/liter)"), main = c("ALP"))
+hist(quantpbc$ast, xlab=c("ast (U/ml)"), main = c("SGOT"))
+hist(quantpbc$trig, xlab=c("trig (mg/dl)"), main = c("Triglycerides"))
+hist(quantpbc$platelet, xlab=c("platelet"), main = c("Platelet"))
+hist(quantpbc$protime, xlab=c("protime"), main = c("Blood clotting time"))
+```
+
+\noindent \textbf{Qualitative Variables}
+
+From the frequency tables, the death rate of complete cases (40.22%) is fairly close to the original trial data (40.06%) and the number of patients treated with DPCA and placebo is nearly identical. And the sex ratio is 7.11:1 (female to male).
+
+```{r, echo=FALSE, include=FALSE}
+qualpbc <- pbc[, c("status", "trt", "sex", "ascites", "hepato", "spiders", "edema", "stage")]
+```
+
+```{r, echo=FALSE, include=FALSE}
+library(xtable)
+freq <- lapply(qualpbc, function(x) as.data.frame(table(x)))
+# freq <- sapply(freq, function(x) x$percentage <- round(x$Freq / sum(x$Freq) * 100, 2))
+
+freq$status$percent <- round(freq$status$Freq / sum(freq$status$Freq)  * 100, 2)
+freq$trt$percent <- round(freq$trt$Freq / sum(freq$trt$Freq)  * 100, 2)
+freq$sex$percent <- round(freq$sex$Freq / sum(freq$sex$Freq)  * 100, 2)
+freq$ascites$percent <- round(freq$ascites$Freq / sum(freq$ascites$Freq)  * 100, 2)
+freq$hepato$percent <- round(freq$hepato$Freq / sum(freq$hepato$Freq)  * 100, 2)
+freq$spiders$percent <- round(freq$spiders$Freq / sum(freq$spiders$Freq)  * 100, 2)
+freq$edema$percent <- round(freq$edema$Freq / sum(freq$edema$Freq)  * 100, 2)
+freq$stage$percent <- round(freq$stage$Freq / sum(freq$stage$Freq)  * 100, 2)
+
+```
+
+```{=latex}
+\begin{table}[!ht]
+\centering
+\begin{minipage}[t]{0.48\linewidth}\centering
+\caption{Frequency table (a)}
+\begingroup\scriptsize
+\begin{tabular}{ l l l l }
+\toprule
+\textbf{Var} & \textbf{class} & freq. & \% \\
+\midrule
+status & alive & 165 & 59.78 \\
+       & dead & 111 & 40.22 \\
+\hline
+trt    & DPCA & 136 & 49.28 \\
+       & placebo & 140 & 50.72 \\
+\hline
+sex    & male & 34 & 12.32 \\
+       & female & 242 & 87.68 \\
+\hline
+ascites & no & 257 & 93.12 \\
+        & yes & 19 & 6.88 \\
+\hline
+hepato  & no & 134 & 48.55 \\
+        & yes & 142 & 51.45 \\
+\hline
+\bottomrule
+\end{tabular}
+\endgroup
+\end{minipage}\hfill%
+\begin{minipage}[t]{0.48\linewidth}\centering
+\caption{Frequency table (b)}
+\label{tab:The parameters 2 }
+\begingroup\scriptsize
+\begin{tabular}{ c c c c}
+\toprule
+\textbf{Var} & \textbf{class} & freq. & \% \\
+\midrule
+spiders & no & 196 & 71.01 \\
+        & yes & 80 & 28.99 \\
+\hline
+edema   & no & 234 & 84.78 \\
+        & treated & 25 & 9.06 \\
+        & yes & 17 & 6.16 \\
+\hline
+stage   & 1 & 12 & 4.35 \\
+        & 2 & 59 & 21.38 \\
+        & 3 & 111 & 40.22 \\
+        & 4 & 94 & 34.06 \\ 
+\hline
+\bottomrule
+\end{tabular}
+\endgroup
+\end{minipage}
+\end{table}
+```
+
+```{r, echo=FALSE, fig.width=10, fig.height=3.5, fig.align='center', fig.cap='Frequency distribution of categorical variables', fig.margin=FALSE}
+par(mfrow = c(2, 4), oma=c(0, 4, 4, 2), mar=c(2, 2, 2, 1))
+barplot(freq$status$Freq, names.arg = c("alive", "dead"), main = c("Survival status"), ylim=c(0, 200))
+barplot(freq$trt$Freq, names.arg = c("DPCA", "placebo"), main = c("Treatment"))
+barplot(freq$sex$Freq, names.arg = c("male", "female"), main = c("Sex"), ylim=c(0, 250))
+barplot(freq$ascites$Freq, names.arg = c("No", "Yes"), main = c("Ascites"))
+barplot(freq$hepato$Freq, names.arg = c("No", "Yes"), main = c("Hepatomegaly"))
+barplot(freq$spiders$Freq, names.arg = c("No", "Yes"), main = c("Skin vessel malformation"), ylim=c(0, 240))
+barplot(freq$edema$Freq, names.arg = c("no edema", "treat", "edema"), main = c("Edema"), ylim=c(0, 250))
+barplot(freq$stage$Freq, names.arg = freq$stage$x, main = c("Disease stage"), ylim=c(0, 120))
+```
+
+### 2.2 Bivariate Analysis
+
+We test the correlation matrix for the variable pairs. we have the following key strong linear correlations (signif. level 0.05):
+
+* $time$ and $status$, $time$ and $stage$ has a negative PCC of -0.35 and -0.36 respectively, which confirms our data setting and clinical observations.
+* $bili$ and $time$ have a negative PCC of -0.43, which is reasonable since an elevated level of serum bilirubin is a sign of liver damage or disease that the liver is not clearing the toxic chemical properly.
+* $ascites$ and $edema$ have a positive PCC of 0.63, which is reasonable since they are both typical symptoms of liver diseases. 
+
+\noindent Besides, we notice that $status$ have linear correlations with almost all clinical indicators and symptoms (Fig.7). Therefore, we will consider all covariates at this stage. 
+
+```{r, echo=FALSE, include=FALSE}
+cor.mtest <- function(mat) {
+    mat <- as.matrix(mat)
+    n <- ncol(mat)
+    p.mat<- matrix(NA, n, n)
+    diag(p.mat) <- 0
+    for (i in 1:(n - 1)) {
+        for (j in (i + 1):n) {
+            tmp <- cor.test(mat[, i], mat[, j])
+            p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+        }
+    }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+}
+```
+
+```{r, echo=FALSE, include=FALSE}
+library(corrplot)
+pbc$sex <- as.numeric(pbc$sex)
+corr <- cor(pbc[, -1])
+p.mat <- cor.mtest(pbc)
+corrplot(corr, type="upper", order="hclust", 
+         p.mat = p.mat, sig.level = 0.05)
+```
+
+## 3. Survival Analysis
+```{r, echo=FALSE, include=FALSE}
+library(survival)
+library(survminer)
+library(dplyr)
+
+survpbc <- pbc[, -1]
+
+survpbc$alk_phos <- log(survpbc$alk.phos)
+survpbc$bili <- log(survpbc$bili)
+survpbc$chol <- log(survpbc$chol)
+survpbc$copper <- log(survpbc$copper)
+survpbc$protime <- log(survpbc$protime)
+survpbc$ast <- log(survpbc$ast)
+survpbc$trig <- log(survpbc$trig)
+
+survpbc$trt <- factor(survpbc$trt, 
+                     levels = c("1", "2"), 
+                     labels = c("DPCA", "placebo"))
+survpbc$sex <- factor(survpbc$sex, 
+                     levels = c("1", "2"), 
+                     labels = c("male", "female"))
+survpbc$ascites <- factor(survpbc$ascites, 
+                    levels = c("0", "1"), 
+                    labels = c("no", "yes"))
+survpbc$hepato <- factor(survpbc$hepato, 
+                    levels = c("0", "1"), 
+                    labels = c("no", "yes"))
+survpbc$spiders <- factor(survpbc$spider, 
+                    levels = c("0", "1"), 
+                    labels = c("no", "yes"))
+survpbc$edema <- factor(survpbc$edema,
+                    levels = c("0", "0.5", "1"),
+                    labels = c("no edema",
+                               "treated/untreated",
+                               "edema"))
+
+survpbc$stage <- factor(survpbc$stage,
+                      levels = c("1", "2", "3", "4"),
+                      labels = c("one", "two", "three", "four"))
+
+survobj <- Surv(survpbc$time, survpbc$status)
+```
+
+```{r, echo=FALSE, include=FALSE}
+# fit KM curves
+# overall survival curve
+f1 <- survfit(survobj ~ 1, data = survpbc)
+#summary(f1)
+f2 <- survfit(survobj ~ sex, data = survpbc)
+#summary(f2)
+f3 <- survfit(survobj ~ trt, data = survpbc)
+#summary(f3)
+f4 <- survfit(survobj ~ edema, data = survpbc)
+```
+
+```{r, echo=FALSE, fig.width=10, fig.height=3, fig.margin=FALSE, fig.align='center', fig.cap='Survival plots by KM estimator'}
+library(survival)
+library(survminer)
+
+splots <- list()
+splots[[1]] <- ggsurvplot(f1, data=survpbc,
+                   conf.int = TRUE,
+                   ggtheme = theme_bw(),
+                   fontsize = 5,
+                   pval.size = 5,
+                   font.legend = 10,
+                   font.tickslab = 10,
+                   surv.median.line = "v",
+                   subtitle = "KM ~ 1",
+                   xlab = "Time in days")
+
+splots[[2]] <- ggsurvplot(f2, data=survpbc,
+                   pval = TRUE,
+                   conf.int = TRUE,
+                   fontsize = 5,
+                   pval.size = 5,
+                   font.legend = 10,
+                   font.tickslab = 10,
+                   ggtheme = theme_bw(),
+                   surv.median.line = "v",
+                   legend.title = c("Sex"),
+                   legend.labs = c("male", "female"),
+                   subtitle = "KM ~ sex",
+                   xlab = "Time in days")
+
+splots[[3]] <- ggsurvplot(f3, data=survpbc,
+                   pval = TRUE,
+                   conf.int = TRUE,
+                   fontsize = 5,
+                   pval.size = 5,
+                   font.legend = 10,
+                   font.tickslab = 10,
+                   ggtheme = theme_bw(),
+                   surv.median.line = "v",
+                   legend.title = c("Treatment"),
+                   legend.labs = c("DPCA", "Placebo"),
+                   subtitle = "KM ~ trt",
+                   xlab = "Time in days") + guides(colour = guide_legend(nrow = 2))
+
+splots[[4]] <- ggsurvplot(f4, data=survpbc,
+                   pval = TRUE,
+                   conf.int = TRUE,
+                   font.legend = 10,
+                   pval.size = 5,
+                   fontsize = 5,
+                   font.tickslab = 10,
+                   ggtheme = theme_bw(),
+                   surv.median.line = "v",
+                   legend.title = c("Edema"),
+                   legend.labs = c("no edema", "treated", "edema"),
+                   subtitle = "KM ~ edema",
+                   xlab = "Time in days") + guides(colour = guide_legend(nrow = 3))
+
+arrange_ggsurvplots(splots, print = TRUE, ncol = 4, nrow = 1)
+
+
+```
+
+```{r, echo=FALSE, include=FALSE}
+library(MASS)
+library(survival)
+library(survminer)
+
+fit0 <- coxph(survobj ~ trt + age + sex + ascites + hepato + 
+                   spiders + edema + bili + chol + albumin + copper + alk.phos + 
+                   ast + trig + protime + stage, data = survpbc)
+
+fit1 <- stepAIC(fit0, direction = "backward", trace = 0)
+fit1
+
+cox.zph(fit1)
+```
+
+### 3.1 Kaplan-Meier (KM) Estimator
+
+The definition of Kaplan-Meier estimator of survive function: $\hat S(t) = \underset{t_i < t} \Pi(1-\frac{d_i}{r_i})$, where $r_i$ is the number of individuals at risk just before $t_i$ (including censored individuals at $t_i$ ), and $d_i$ is the number of individuals experiencing the event at time $t_i$.
+
+```{=latex}
+\begin{table}[!ht]
+\centering
+\begingroup\scriptsize
+\begin{tabular}{clccccccc}
+\hline
+\textbf{Var.} & \multicolumn{1}{c}{\textbf{Cat.}} & N & Observed & Expected & (O-E)\textasciicircum{}2/E & (O-E)\textasciicircum{}2/V & \textbf{Chisq.} & \textbf{p} \\ \hline
+\multirow{2}{*}{trt}   & DPCA     & 136 & 57 & 53.7   & 0.209 & 0.405  & \multirow{2}{*}{0.4} & \multirow{2}{*}{0.5}                      \\
+                       & placebo  & 140 & 54 & 57.3   & 0.195 & 0.405  &                      &                                           \\ \hline
+\multirow{2}{*}{sex}   & male     & 34  & 21 & 13.7   & 3.878 & 4.47   & \multirow{2}{*}{4.5} & \multirow{2}{*}{0.03} \\
+                       & female   & 242 & 90 & 97.3   & 0.546 & 4.47   &                      &                      \\ \hline
+\multirow{3}{*}{edema} & no edema & 234 & 79 & 100.95 & 4.77  & 53.09  & \multirow{3}{*}{113} & \multirow{3}{*}{\textless{}2e-16}         \\
+                       & treated  & 25  & 16 & 8.06   & 7.83  & 8.46   &                      &                                           \\
+                       & edema    & 17  & 16 & 1.99   & 98.74 & 101.59 &                      &                                           \\ \hline
+\end{tabular}
+\caption{Log-rank stats table}
+\endgroup
+\end{table}
+```
+
+First, we investigate whether there is a significant difference in survival curves between two groups of patients treated with DPCA and placebo. The null and alternative hypothesis are: $H_0: S_{DPCA}(t) = S_{p}(t)$, $H_1: S_{DPCA}(t) \neq S_{p}(t)$, where $H_0$ states there is no significant difference in survival time between patients who receive DPCA and placebo, $H_1$ states there is a significant difference between the above groups. We consider $p < 0.05$ to indicate statistical significance. The KM survival curve and log-rank test statistics are shown in Figure 3 and Table 4 separately. Since $p = 0.5 > 0.05$, we do not reject the null hypothesis, which means there is no significant difference in survival curves between DPCA and placebo treatment for complete patient cases. Then we investigate the survival curve difference in patients' sex. The null and alternative hypothesis are: $H_0: S_{m}(t) = S_{f}(t)$, $H_1: S_{m}(t) \neq S_{f}(t)$, where $H_0$ states there is no significant difference in survival time between male and female patients, $H_1$ states there is a significant difference. since $p = 0.03 < 0.05$, we can reject the null hypothesis and state that survival time indeed has a significant difference between sex groups. This difference can be clearly captured as the survival curve of the female group is generally above the male group, indicating a higher survival probability at large $t$. A similar analysis conducts on the edema symptom also rejects the null hypothesis, revealing a significant difference in survival curves. 
+
+```{r, include=FALSE}
+library(survival)
+library(survminer)
+survdiff(survobj ~ trt, data=survpbc)
+survdiff(survobj ~ sex, data=survpbc)
+```
+
+### 3.2 Cox Proportional Hazards (Cox PH) Model
+
+```{=latex}
+\begin{table}[h!]
+\centering
+\begingroup\scriptsize
+\begin{tabular}{cccccccccc}
+\hline
+\textbf{Var.} & Chisq.  & exp(coef) & se(coef) & z      & \textbf{p}      & C-index & \textbf{likelihood} & \textbf{log-rank} & \textbf{Wald} \\ \hline
+age &
+  0.0323 &
+  1.0328 &
+  0.0092 &
+  3.509 &
+  \textless 0.001 &
+  \multirow{7}{*}{0.849} &
+  \multirow{7}{*}{\begin{tabular}[c]{@{}c@{}}173.8, \\ p\textless{}2e-16\end{tabular}} &
+  \multirow{7}{*}{\begin{tabular}[c]{@{}c@{}}249.7, \\ p\textless{}2e-16\end{tabular}} &
+  \multirow{7}{*}{\begin{tabular}[c]{@{}c@{}}173, \\ p\textless{}2e-16\end{tabular}} \\
+edema:treated & 0.1887  & 1.2076    & 0.2904   & 0.650  & 0.516           &         &                     &                   &               \\
+edema:edema   & 0.9053  & 2.4727    & 0.3386   & 2.674  & 0.008           &         &                     &                   &               \\
+bili          & 0.7343  & 2.0839    & 0.1220   & 6.017  & \textless 2e-09 &         &                     &                   &               \\
+albumin       & -0.7948 & 0.4517    & 0.2582   & -3.078 & 0.002           &         &                     &                   &               \\
+copper        & 0.3834  & 1.4673    & 0.1468   & 2.612  & 0.009           &         &                     &                   &               \\
+protime       & 2.6860  & 14.6730   & 1.1867   & 2.263  & 0.024           &         &                     &                   &               \\ \hline
+\end{tabular}
+\caption{AIC model selection result}
+\endgroup
+\end{table}
+```
+
+Since we will consider the effect of covariates have on the risk of death (or survival time in reverse) and some of them are quantitative, we fit a Cox PH model that measure the hazard function instead of the survival function in KM estimator. The hazard function can be expressed as $h(t) = h_0(t) \times exp(\beta_1x_1 + \beta_2x_2 + \ldots + \beta_px_p)$, where $t$ represents the survival time, $h(t)$ is the hazard function determined by $p$ covariates ($x_1,x_2,...,x_p$) and the coefficients ($b_1,b_2,...,b_p$) measure the impact of them. $h_0$ is the baseline hazard equals to $h(t)|_{x_i=0, i\in[p]}$. The estimated Cox PH model should satisfy the following assumptions:
+
+```{=latex}
+\begin{table}[h!]
+\centering
+\begingroup\scriptsize
+\begin{tabular}{cccc}
+\hline
+\textbf{Var.} & \textbf{Chisq.} & df & \textbf{p} \\ \hline
+age           & 0.954           & 1  & 0.329      \\
+edema         & 5.769           & 2  & 0.056      \\
+bili          & 0.782           & 1  & 0.377      \\
+albumin       & 0.312           & 1  & 0.577      \\
+copper        & 0.776           & 1  & 0.378      \\
+protime       & 3.805           & 1  & 0.051      \\ \hline
+GLOBAL        & 2.6860          & 7  & 0.068      \\ \hline
+\end{tabular}
+\caption{Test for proportional hazards}
+\endgroup
+\end{table}
+```
+
+* $\beta_i, i \in [p]$ is constant over time (proportional hazard)
+* Linear form of the covariates
+* No outliers which are poorly predicted by the model
+
+```{r, echo=FALSE, fig.align='center', fig.width=10, fig.height=4.5, fig.margin=FALSE, fig.cap='Schoenfeld residual plots'}
+ggcoxzph(cox.zph(fit1), font.main=14, font.x = 10, font.y=10, font.tickslab=8, font.title=14)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align='center', fig.width=10, fig.height=3, fig.margin=FALSE, fig.cap='Martingale residual and deviance plot'}
+d1 <- ggcoxdiagnostics(fit1, type = "martingale", linear.predictions = TRUE,
+                       font.tickslab=12,
+                       font.title=18,
+                       font.x=12,
+                       font.y=12)
+d2 <- ggcoxdiagnostics(fit1, type = "deviance", linear.predictions = FALSE,
+                       font.tickslab=12,
+                       font.title=18,
+                       font.x=12,
+                       font.y=12)
+ggarrange(d1, d2, ncol = 2, nrow = 1, align = "h")
+```
+
+We apply backward elimination to select the best model regarding its explainability and complexity (number of covariates in analysis). Starting from the full model including all variables, we minimize the AIC and each time eliminate 1 covariate which gives the minimum value if deleted. The Cox PH model is fitted by maximum partial likelihood. The selection result is shown in Table 5, with its goodness-of-fit test passed and concordance of 0.849 indicating its strong robustness. Statistical and graphical assessments are shown in Table 6 and Figures 4 and 5. For all covariates selected, we cannot reject the null hypothesis that they follow the proportional hazard pattern. $\beta(t)$ has no time-related pattern in Schoenfeld plots and also ensures proportional hazard. The martingale residual plots regarding all included covariates generally follow a linear pattern, and the linear prediction of deviance is fairly symmetric around 0 except at the very end of observations. The model satisfies the assumptions and explains the complete patient cases properly. 
+
+### 3.3 Cox PH Model Estimation
+
+```{r, echo=FALSE, fig.align='center', fig.width=8, fig.height=2.5, fig.cap='Forest plot of estimated model'}
+ggforest(fit1, data=survpbc)
+```
+
+Estimated model (0.05 signif. level, after log transformation):\newline
+
+$\hat h(t) = \hat h_0(t) \times exp(0.03 \times age + 0.91 \times edema + 0.73 \times bili - 0.79\times albumin + 0.38 \times copper + 2.69 \times protime)$
+
+* Blood clotting time ($protime$) has an HR of 14.67, indicating bleeding will considerably increase the risk of death for PBC patients.
+* A higher level of urine copper and serum bilirubin, edema, and older age will all increase the risk of death; whereas a higher level of serum albumin will decrease the risk (Fig.6), which corresponds well to the current clinical study. 
+* The estimated model excludes treatment method and sex as they all failed the significance test in the full model. This confirms the KM estimator of DPCA's irrelevance with PBC patients' survival time but delivers a different result for sex since in the KM estimator the survival curves have a significant difference. 
+
+## 4. Summary
+
+The survival analysis focuses on 276 complete cases of PBC patients and applies both the KM estimator and Cox PH model to estimate the survival function and the hazard function. The result shows that treatment with DPCA does not have a significant effect on patients' survival time. In addition, the model selected by backward AIC explains that higher age, a higher level of urine copper and serum bilirubin, having edema will increase the risk of death and a higher level of serum bilirubin will decrease the risk on the opposite. To further expand data modeling, we can train a random survival forest or construct parametric models to compare with the Cox PH model and select the one with the best explainability.
+
+## Appendix
+
+```{=latex}
+\begin{table}[h!]
+    \centering
+    \begingroup\scriptsize
+    \begin{tabular}{|p{1.8cm}|p{1.2cm}|p{12cm}|}
+    \hline
+        \textbf{Variable} &  \textbf{Type} & \textbf{Description} \\ \hline
+        id & N/A & case number, discard in analysis\\ \hline
+        time & Quant. & \textbf{response variable}, number of days between registration \& earlier status\\ \hline
+        status & Qual. & 0=alive, 1=dead\\ \hline
+        trt & Qual. & treatment, 0=DPCA, 1=placebo \\ \hline
+        age & Quant. & patient's age in years at registration\\ \hline
+        sex & Qual. & patient's sex, m=male, f=female\\ \hline
+        ascites & Qual. & presence of ascites, 0=No, 1=Yes \\ \hline
+        hepato & Qual. & presence of hepatomegaly, 0=No, 1=Yes \\ \hline
+        spiders & Qual. & blood vessel malformations in the skin, 0=No, 1=Yes \\ \hline
+        edema & Qual. & 0=no edema, 0.5=untreated/successfully treated, 1=edema despite diuretic therapy\\ \hline
+        bili & Quant. & serum bilirunbin (mg/dl) \\ \hline
+        copper & Quant. & urine copper (ug/day) \\ \hline
+        chol & Quant. & serum cholesterol (mg/dl) \\ \hline
+        albumin & Quant. & serum albumin (g/dl) \\ \hline
+        alk.phos & Quant. & alkaline phosphotase (U/liter) \\ \hline
+        ast & Quant. & aspartate aminotransferase, or SGOT (U/ml)\\ \hline
+        trig & Quant. & triglycerides (mg/dl) \\ \hline
+        platelet & Quant. & platelet count\\ \hline
+        protime & Quant. & standardized blood clotting time \\ \hline
+        stage & Qual. & histologic stage of disease (biopsy)\\ \hline
+    \end{tabular}
+    \caption{Table of variables}
+    \endgroup
+\end{table}
+```
+
+```{r pressure, echo=FALSE, fig.cap="Visualized correlation matrix", fig.align='center', out.width = '40%', out.height='40%', fig.margin=FALSE}
+knitr::include_graphics("corr.png")
+```
+
+```{r, echo=FALSE, include=FALSE, fig.cap="Paired plots of quant. variables", fig.align='center', fig.width = 14, fig.height=8, fig.margin=FALSE}
+pairs(quantpbc, pch = 2, lower.panel = NULL, cex=0.1, cex.axis=1.2, oma=c(1.2, 4, 4, 2))
+```
