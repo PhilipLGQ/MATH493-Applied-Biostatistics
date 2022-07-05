@@ -35,11 +35,11 @@ head(pbc)
 
 ## 1. Introduction
 
-Primary biliary cirrhosis is a relatively rare autoimmune liver disease that leading slow but progressive destruction of small bile ducts, which will result in permanent cirrhosis and liver decompensation. Patients may also suffer abdominal pain, diarrhea, and an increased risk of cancer. The dataset is originally collected from the Mayo Clinic trial of primary biliary cirrhosis (PBC) of the liver from 1974 to 1984. 424 PBC patients met the eligibility criteria for a randomized placebo-controlled trial of the drug D-penicillamine (DPCA). The first 312 data entries represent participants of the above trial and their data is mostly complete. The rest 112 patients declined to participate but agreed to record basic measurements and track survival. 6 of these cases were discarded due to track lost shortly after diagnosis. The purpose of this analysis is to investigate the effect of DPCA on the lifetime of patients with PBC, along with what covariates significantly influence patients' risk of death.
+Primary biliary cirrhosis (PBC) is a rare autoimmune liver disease that leading slow but progressive destruction of small bile ducts, which will result in permanent cirrhosis and liver decompensation. Patients may also suffer abdominal pain, diarrhea, and an increased risk of cancer. The dataset is collected from the Mayo Clinic trials of PBC of the liver from 1974 to 1984. 424 PBC patients met the eligibility criteria for a randomized placebo-controlled trial of the drug D-penicillamine (DPCA). The first 312 data entries represent participants of the above trial and their data is mostly complete. The rest 112 patients declined to participate but agreed to record basic measurements and track survival. 6 of these were discarded due to track lost. The purpose of this analysis is to investigate the effect of DPCA on the lifetime of patients with PBC, along with what covariates significantly influence patients' risk of death.
 
 ## 2. EDA
 
-The dataset contains 418 data entries, corresponding to 312 trial participants and 106 additional cases in order. Each entry has 3 basic columns recording their survival time in days, status at endpoint (alive, transplant, dead), and treatments by DPCA/placebo. Besides, each entry has 15 covariates describing a patient's personal information (age, sex), clinical assay indexes, and other complications. Regarding all variable columns, the dataset contains 276 complete cases without missing values among 312 formal participants. The sex ratio of the dataset is at least $9:1$ (female to male) and 125 of the 312 formal participants died at the endpoint and the rest were alive (censored/transplant). To formalize the analysis, both censored and transplant status are considered alive. The defined variable table is shown in Appx.1 and the following analysis will be conducted on the 276 complete cases as stated above. 
+The dataset has 418 data entries, corresponding to 312 trial participants and 106 additional cases. Each entry has 3 basic columns recording their survival time in days, status at endpoint (censored, transplant, dead), and treatments by DPCA/placebo. Besides, each entry has 15 covariates describing a patient's personal information (age, sex), clinical assay indexes, and other complications. The dataset contains 276 complete cases without missing values among trial participants. The sex ratio of the dataset is at least $9:1$ (female to male) and 125 of the 312 trial participants died at the endpoint. To formalize the analysis, both censored and transplant status are considered alive. The variable table is shown in Appendix and we conduct the survival analysis on the complete cases. 
 
 ```{r, echo=FALSE, include=FALSE}
 pbc <- data.frame(pbc)
@@ -57,9 +57,7 @@ pbc$sex = factor(pbc$sex, levels = c("m", "f"), labels = c(0, 1))
 
 ### 2.1 Univariate Analysis
 
-\noindent \textbf{Quantitative Variables}
-
-Combining the results in Table 1 and Figure 1, we can clearly see that covariates $bili$, $chol$, $copper$, $alk.phos$, $ast$, $trig$, and $protime$ have typical right-skewed distributions, which I will apply the log transformation to them to compensate for a normal distribution in survival analysis. The median survival time and patient ages are 1788 days after registration and 49.71 years respectively. 
+Combining the results in Table 1 and Figure 1, we can clearly see that covariates $bili$, $chol$, $copper$, $alk.phos$, $ast$, $trig$, and $protime$ have typical right-skewed distributions, which I will apply the log transformation to them to compensate for a normal distribution in survival analysis. The median survival time and patient ages are 1788 days after registration and 49.71 years respectively. The death rate of complete cases (40.22%) is fairly close to the original trial data (40.06%) and the number of patients treated with DPCA and placebo is nearly identical (Table 2, 3). The sex ratio is 7.11:1 (female to male).
 
 ```{=latex}
 \begin{table}[ht]
@@ -123,9 +121,18 @@ hist(quantpbc$platelet, xlab=c("platelet"), main = c("Platelet"))
 hist(quantpbc$protime, xlab=c("protime"), main = c("Blood clotting time"))
 ```
 
-\noindent \textbf{Qualitative Variables}
+### 2.2 Bivariate Analysis
 
-From the frequency tables, the death rate of complete cases (40.22%) is fairly close to the original trial data (40.06%) and the number of patients treated with DPCA and placebo is nearly identical. And the sex ratio is 7.11:1 (female to male).
+We test the correlation matrix for available variable pairs. A visualized result is provided in Figure 2. we have the following key strong linear correlations (signif. level 0.05):
+
+* $time$ and $status$ has a negative PCC of -0.35, which confirms our data setting and clinical observations. $bili$ and $time$ have a negative PCC of -0.43, which is reasonable since an elevated level of serum bilirubin is a sign of liver damage or disease that the liver is not clearing the toxic chemical properly.
+* $ascites$ and $edema$ have a positive PCC of 0.63, which is reasonable since they are both typical symptoms of liver diseases. 
+
+\noindent Besides, we notice that $status$ have linear correlations with almost all clinical indicators and symptoms (Fig.7). Therefore, we will consider all covariates at this stage. The paired scatter plots for quantitative variables are shown in Appendix, Table 7. 
+
+```{r, echo=FALSE, fig.cap="Visualized correlation matrix", fig.align='center', out.width = "30%", out.height = "30%", fig.margin=FALSE}
+knitr::include_graphics("corr2.png")
+```
 
 ```{r, echo=FALSE, include=FALSE}
 qualpbc <- pbc[, c("status", "trt", "sex", "ascites", "hepato", "spiders", "edema", "stage")]
@@ -203,7 +210,7 @@ stage   & 1 & 12 & 4.35 \\
 \end{table}
 ```
 
-```{r, echo=FALSE, fig.width=10, fig.height=3.5, fig.align='center', fig.cap='Frequency distribution of categorical variables', fig.margin=FALSE}
+```{r, echo=FALSE, fig.width=10, fig.height=3, fig.align='center', fig.cap='Frequency distribution of categorical variables', fig.margin=FALSE}
 par(mfrow = c(2, 4), oma=c(0, 4, 4, 2), mar=c(2, 2, 2, 1))
 barplot(freq$status$Freq, names.arg = c("alive", "dead"), main = c("Survival status"), ylim=c(0, 200))
 barplot(freq$trt$Freq, names.arg = c("DPCA", "placebo"), main = c("Treatment"))
@@ -214,16 +221,6 @@ barplot(freq$spiders$Freq, names.arg = c("No", "Yes"), main = c("Skin vessel mal
 barplot(freq$edema$Freq, names.arg = c("no edema", "treat", "edema"), main = c("Edema"), ylim=c(0, 250))
 barplot(freq$stage$Freq, names.arg = freq$stage$x, main = c("Disease stage"), ylim=c(0, 120))
 ```
-
-### 2.2 Bivariate Analysis
-
-We test the correlation matrix for the variable pairs. we have the following key strong linear correlations (signif. level 0.05):
-
-* $time$ and $status$, $time$ and $stage$ has a negative PCC of -0.35 and -0.36 respectively, which confirms our data setting and clinical observations.
-* $bili$ and $time$ have a negative PCC of -0.43, which is reasonable since an elevated level of serum bilirubin is a sign of liver damage or disease that the liver is not clearing the toxic chemical properly.
-* $ascites$ and $edema$ have a positive PCC of 0.63, which is reasonable since they are both typical symptoms of liver diseases. 
-
-\noindent Besides, we notice that $status$ have linear correlations with almost all clinical indicators and symptoms (Fig.7). Therefore, we will consider all covariates at this stage. 
 
 ```{r, echo=FALSE, include=FALSE}
 cor.mtest <- function(mat) {
@@ -250,6 +247,16 @@ p.mat <- cor.mtest(pbc)
 corrplot(corr, type="upper", order="hclust", 
          p.mat = p.mat, sig.level = 0.05)
 ```
+
+```{r, echo=FALSE, include=FALSE}
+library(corrplot)
+pbc1 <- pbc[c("time", "status", "trt", "age", "ascites", "hepato", "spiders", "edema", "bili", "chol", "albumin", "copper", "alk.phos", "ast", "trig", "platelet", "protime")]
+corr1 <- cor(pbc1)
+p1.mat <- cor.mtest(pbc1)
+corrplot(corr1, type="upper", order="hclust",
+         p.mat = p.mat, sig.level = 0.05)
+```
+
 
 ## 3. Survival Analysis
 ```{r, echo=FALSE, include=FALSE}
@@ -307,7 +314,7 @@ f3 <- survfit(survobj ~ trt, data = survpbc)
 f4 <- survfit(survobj ~ edema, data = survpbc)
 ```
 
-```{r, echo=FALSE, fig.width=10, fig.height=3, fig.margin=FALSE, fig.align='center', fig.cap='Survival plots by KM estimator'}
+```{r, echo=FALSE, fig.width=10, fig.height=2.6, fig.margin=FALSE, fig.align='center', fig.cap='Survival plots by KM estimator'}
 library(survival)
 library(survminer)
 
@@ -387,7 +394,7 @@ cox.zph(fit1)
 
 ### 3.1 Kaplan-Meier (KM) Estimator
 
-The definition of Kaplan-Meier estimator of survive function: $\hat S(t) = \underset{t_i < t} \Pi(1-\frac{d_i}{r_i})$, where $r_i$ is the number of individuals at risk just before $t_i$ (including censored individuals at $t_i$ ), and $d_i$ is the number of individuals experiencing the event at time $t_i$.
+The Kaplan-Meier estimator is defined as: $\hat S(t) = \underset{t_i < t} \Pi(1-\frac{d_i}{r_i})$, $r_i$ is the number of individuals at risk just before $t_i$ (including censored individuals at $t_i$ ), and $d_i$ is the number of individuals experiencing the event at time $t_i$. First, we investigate whether a significant difference in survival curves exists between two groups of patients with different treatments. The null and alternative hypothesis are: $H_0: S_{DPCA}(t) = S_{p}(t)$, $H_1: S_{DPCA}(t) \neq S_{p}(t)$, where $H_0$ states there is no significant difference in survival time between patients who receive DPCA and placebo, $H_1$ states there is a significant difference between the above groups. We consider $p < 0.05$ to indicate statistical significance. The KM survival curve and log-rank test are shown in Figure 4 and Table 4. Since $p = 0.5 > 0.05$, we do not reject the null hypothesis, which means there is no significant difference in survival curves between DPCA and placebo treatment for complete patient cases. Then we investigate the difference regarding patients' sex. The null and alternative hypothesis are: $H_0: S_{m}(t) = S_{f}(t)$, $H_1: S_{m}(t) \neq S_{f}(t)$, where $H_0$ states there is no significant difference in survival time between male and female patients, $H_1$ states there is a significant difference. since $p = 0.03 < 0.05$, we reject the null hypothesis and the survival time indeed has a significant difference between sex groups. This difference can be clearly captured as the survival curve of the female group is generally above the male group, indicating a higher survival probability at large $t$. A similar analysis on the edema also rejects the null hypothesis, revealing a significant difference in survival curves. 
 
 ```{=latex}
 \begin{table}[!ht]
@@ -408,8 +415,6 @@ The definition of Kaplan-Meier estimator of survive function: $\hat S(t) = \unde
 \endgroup
 \end{table}
 ```
-
-First, we investigate whether there is a significant difference in survival curves between two groups of patients treated with DPCA and placebo. The null and alternative hypothesis are: $H_0: S_{DPCA}(t) = S_{p}(t)$, $H_1: S_{DPCA}(t) \neq S_{p}(t)$, where $H_0$ states there is no significant difference in survival time between patients who receive DPCA and placebo, $H_1$ states there is a significant difference between the above groups. We consider $p < 0.05$ to indicate statistical significance. The KM survival curve and log-rank test statistics are shown in Figure 3 and Table 4 separately. Since $p = 0.5 > 0.05$, we do not reject the null hypothesis, which means there is no significant difference in survival curves between DPCA and placebo treatment for complete patient cases. Then we investigate the survival curve difference in patients' sex. The null and alternative hypothesis are: $H_0: S_{m}(t) = S_{f}(t)$, $H_1: S_{m}(t) \neq S_{f}(t)$, where $H_0$ states there is no significant difference in survival time between male and female patients, $H_1$ states there is a significant difference. since $p = 0.03 < 0.05$, we can reject the null hypothesis and state that survival time indeed has a significant difference between sex groups. This difference can be clearly captured as the survival curve of the female group is generally above the male group, indicating a higher survival probability at large $t$. A similar analysis conducts on the edema symptom also rejects the null hypothesis, revealing a significant difference in survival curves. 
 
 ```{r, include=FALSE}
 library(survival)
@@ -449,7 +454,7 @@ protime       & 2.6860  & 14.6730   & 1.1867   & 2.263  & 0.024           &     
 \end{table}
 ```
 
-Since we will consider the effect of covariates have on the risk of death (or survival time in reverse) and some of them are quantitative, we fit a Cox PH model that measure the hazard function instead of the survival function in KM estimator. The hazard function can be expressed as $h(t) = h_0(t) \times exp(\beta_1x_1 + \beta_2x_2 + \ldots + \beta_px_p)$, where $t$ represents the survival time, $h(t)$ is the hazard function determined by $p$ covariates ($x_1,x_2,...,x_p$) and the coefficients ($b_1,b_2,...,b_p$) measure the impact of them. $h_0$ is the baseline hazard equals to $h(t)|_{x_i=0, i\in[p]}$. The estimated Cox PH model should satisfy the following assumptions:
+Since we consider the effect of covariates have on the risk of death (or survival time in reverse) and some of them are quantitative, we fit a Cox PH model to measure the hazard function instead of the survival function in KM estimator. The hazard function can be expressed as $h(t) = h_0(t) \times exp(\beta_1x_1 + \beta_2x_2 + \ldots + \beta_px_p)$, where $t$ represents the survival time, $h(t)$ is the hazard function determined by $p$ covariates ($x_1,x_2,...,x_p$) and the coefficients ($b_1,b_2,...,b_p$) measure the impact of them. $h_0$ is the baseline hazard equals to $h(t)|_{x_i=0, i\in[p]}$. The estimated Cox PH model should satisfy the following assumptions:
 
 ```{=latex}
 \begin{table}[h!]
@@ -472,14 +477,16 @@ GLOBAL        & 2.6860          & 7  & 0.068      \\ \hline
 ```
 
 * $\beta_i, i \in [p]$ is constant over time (proportional hazard)
-* Linear form of the covariates
-* No outliers which are poorly predicted by the model
+* Linear form of the covariates and no outliers which are poorly predicted by the model
 
-```{r, echo=FALSE, fig.align='center', fig.width=10, fig.height=4.5, fig.margin=FALSE, fig.cap='Schoenfeld residual plots'}
+```{r, echo=FALSE, fig.align='center', fig.width=10, fig.height=4, fig.margin=FALSE, fig.cap='Schoenfeld residual plots'}
 ggcoxzph(cox.zph(fit1), font.main=14, font.x = 10, font.y=10, font.tickslab=8, font.title=14)
 ```
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align='center', fig.width=10, fig.height=3, fig.margin=FALSE, fig.cap='Martingale residual and deviance plot'}
+We use backward elimination to select the best model regarding its explainability and complexity of covariates. Starting from a full model, we minimize the AIC (see Appendix) and each time eliminate 1 covariate which gives the minimum value if deleted. We fit the model by maximum partial likelihood. The selection result is shown in Table 5, with its goodness-of-fit test passed and a concordance of 0.849 showing its strong robustness. Model assessments are shown in Table 6 and Figures 5, 6. We do not reject the null hypothesis that selected covariates follow a proportional hazard pattern. $\beta(t)$ has no time-related pattern in Schoenfeld plots and ensures proportional hazard. The martingale residual plots regarding selected covariates generally follow a linear pattern, and the linear prediction of deviance is fairly symmetric around 0 except at the very end. The model satisfies the assumptions and explains the trial cases properly. However, we see that 10 outliers (abs. value $\geq2$) exist in the deviance residual plot, indicating the model has poor explainability on them and the model is not perfectly fit on the trials. 
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align='center', fig.width=10, fig.height=2.3, fig.margin=FALSE, fig.cap='Martingale residual and deviance plot'}
 d1 <- ggcoxdiagnostics(fit1, type = "martingale", linear.predictions = TRUE,
                        font.tickslab=12,
                        font.title=18,
@@ -493,27 +500,35 @@ d2 <- ggcoxdiagnostics(fit1, type = "deviance", linear.predictions = FALSE,
 ggarrange(d1, d2, ncol = 2, nrow = 1, align = "h")
 ```
 
-We apply backward elimination to select the best model regarding its explainability and complexity (number of covariates in analysis). Starting from the full model including all variables, we minimize the AIC and each time eliminate 1 covariate which gives the minimum value if deleted. The Cox PH model is fitted by maximum partial likelihood. The selection result is shown in Table 5, with its goodness-of-fit test passed and concordance of 0.849 indicating its strong robustness. Statistical and graphical assessments are shown in Table 6 and Figures 4 and 5. For all covariates selected, we cannot reject the null hypothesis that they follow the proportional hazard pattern. $\beta(t)$ has no time-related pattern in Schoenfeld plots and also ensures proportional hazard. The martingale residual plots regarding all included covariates generally follow a linear pattern, and the linear prediction of deviance is fairly symmetric around 0 except at the very end of observations. The model satisfies the assumptions and explains the complete patient cases properly. 
+```{r, include=FALSE}
+residuals(fit1, type='deviance')
+```
+
 
 ### 3.3 Cox PH Model Estimation
-
-```{r, echo=FALSE, fig.align='center', fig.width=8, fig.height=2.5, fig.cap='Forest plot of estimated model'}
-ggforest(fit1, data=survpbc)
-```
 
 Estimated model (0.05 signif. level, after log transformation):\newline
 
 $\hat h(t) = \hat h_0(t) \times exp(0.03 \times age + 0.91 \times edema + 0.73 \times bili - 0.79\times albumin + 0.38 \times copper + 2.69 \times protime)$
 
-* Blood clotting time ($protime$) has an HR of 14.67, indicating bleeding will considerably increase the risk of death for PBC patients.
-* A higher level of urine copper and serum bilirubin, edema, and older age will all increase the risk of death; whereas a higher level of serum albumin will decrease the risk (Fig.6), which corresponds well to the current clinical study. 
+```{r, echo=FALSE, fig.align='center', fig.width=8, fig.height=2.1, fig.cap='Forest plot of estimated model'}
+ggforest(fit1, data=survpbc)
+```
+
+* Blood clotting time ($protime$) has an HR of 14.67, indicating bleeding will considerably increase the risk of death for PBC patients. A higher level of urine copper and serum bilirubin, edema, and older age will all increase the risk; whereas a higher level of serum albumin will decrease the risk, which corresponds well to the current clinical study. 
 * The estimated model excludes treatment method and sex as they all failed the significance test in the full model. This confirms the KM estimator of DPCA's irrelevance with PBC patients' survival time but delivers a different result for sex since in the KM estimator the survival curves have a significant difference. 
 
 ## 4. Summary
 
-The survival analysis focuses on 276 complete cases of PBC patients and applies both the KM estimator and Cox PH model to estimate the survival function and the hazard function. The result shows that treatment with DPCA does not have a significant effect on patients' survival time. In addition, the model selected by backward AIC explains that higher age, a higher level of urine copper and serum bilirubin, having edema will increase the risk of death and a higher level of serum bilirubin will decrease the risk on the opposite. To further expand data modeling, we can train a random survival forest or construct parametric models to compare with the Cox PH model and select the one with the best explainability.
+The analysis focuses on 276 complete cases of PBC and use both the KM and Cox PH model to estimate the survival function and the hazard function. The result shows that treatment with DPCA does not have a significant effect on patients' survival time. The model selected by backward AIC explains that a higher age, a higher level of urine copper and serum bilirubin, having edema will increase the risk and a higher level of serum bilirubin will decrease the risk. To expand data modeling, we can train a random forest or construct parametric models to compare with the explainability of Cox PH model.
 
 ## Appendix
+
+\noindent \textbf{AIC}: The Akaike information criterion (AIC) is an estimator of prediction error and thereby relative quality of statistical models for a given dataset. It deals with the trade-off between the goodness of fit of the model and the simplicity of the model and provides a means for model selection. Let $k$ be the number of estimated parameters in the model, and $\hat{L}$ be the maximum value of the likelihood function for the model: ${\mathrm {AIC} \,=\,2k-2\ln({\hat {L}})}$.
+
+```{r, echo=FALSE, fig.cap="Paired plots", fig.align='center', fig.width = 14.8, fig.height=6.5, fig.margin=FALSE}
+pairs(quantpbc, pch = 2, lower.panel = NULL, cex=0.1, cex.axis=1.2, oma=c(1.2, 4, 4, 2))
+```
 
 ```{=latex}
 \begin{table}[h!]
@@ -548,10 +563,10 @@ The survival analysis focuses on 276 complete cases of PBC patients and applies 
 \end{table}
 ```
 
-```{r pressure, echo=FALSE, fig.cap="Visualized correlation matrix", fig.align='center', out.width = '40%', out.height='40%', fig.margin=FALSE}
-knitr::include_graphics("corr.png")
-```
 
-```{r, echo=FALSE, include=FALSE, fig.cap="Paired plots of quant. variables", fig.align='center', fig.width = 14, fig.height=8, fig.margin=FALSE}
-pairs(quantpbc, pch = 2, lower.panel = NULL, cex=0.1, cex.axis=1.2, oma=c(1.2, 4, 4, 2))
-```
+
+
+
+
+
+
